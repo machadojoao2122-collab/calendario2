@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calendário de Reservas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#080808;--surface:#111111;--elevated:#1a1a1a;--hover:#222222;
+    --border:rgba(255,255,255,0.07);--border-strong:rgba(255,255,255,0.13);
+    --gold:#c9a84c;--gold-light:#e6c97a;--gold-dim:rgba(201,168,76,0.14);
+    --text:#f0ece4;--text-secondary:#8a8680;--text-muted:#4a4744;
+    --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.12);
+    --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
+    --green:#34d399;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+  ::selection{background:var(--gold-dim);color:var(--gold-light)}
+
+  header{border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;background:rgba(8,8,8,0.92);backdrop-filter:blur(12px)}
+  .header-inner{max-width:900px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo-icon{width:38px;height:38px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .logo-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
+  .logo-sub{font-size:11px;color:var(--text-muted);margin-top:-2px}
+  .refresh-btn{background:var(--elevated);border:1px solid var(--border);color:var(--text-secondary);border-radius:8px;padding:8px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;font-size:13px}
+  .refresh-btn:hover{color:var(--gold);border-color:var(--gold-dim)}
+  .refresh-btn.spinning svg{animation:spin 1s linear infinite}
+
+  main{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  .stat-card{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+  .stat-label{font-size:11px;color:var(--text-secondary);margin-bottom:6px}
+  .stat-value{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;line-height:1}
+
+  .cal-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+  .cal-nav{background:var(--elevated);border:1px solid var(--border);color:var(--text-secondary);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:18px}
+  .cal-nav:hover{color:var(--gold);border-color:var(--gold-dim);transform:scale(1.08)}
+  .cal-month-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;text-align:center}
+  .cal-year{font-size:12px;color:var(--text-secondary);text-align:center;margin-top:-4px}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 16px;border-bottom:1px solid var(--border)}
+  .cal-weekday{text-align:center;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:12px 14px}
+
+  .cal-day{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;border:1px solid transparent;user-select:none}
+  .cal-day:hover:not(.other-month):not(.past){background:var(--hover);transform:scale(1.05)}
+  .cal-day.other-month{opacity:.18;cursor:default}
+  .cal-day.past:not(.has-events){opacity:.28;cursor:default}
+  .cal-day.today:not(.has-events){background:var(--gold-dim);border-color:rgba(201,168,76,0.4)}
+  .cal-day.today .day-num{color:var(--gold-light);font-weight:600}
+  .cal-day.has-confirmed{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.4)}
+  .cal-day.has-pending{background:var(--blue-dim);border-color:rgba(96,165,250,0.3)}
+  .cal-day.has-confirmed:hover,.cal-day.has-pending:hover{transform:scale(1.05)}
+  .day-num{font-size:14px;font-weight:500;line-height:1}
+  .day-dots{display:flex;gap:2px;margin-top:3px;align-items:center;justify-content:center;flex-wrap:wrap;max-width:80%}
+  .day-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+  .day-count{font-size:9px;color:var(--text-muted);margin-top:1px}
+  .cal-legend{display:flex;flex-wrap:wrap;gap:16px;padding:14px 24px;border-top:1px solid var(--border)}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+  .legend-dot{width:10px;height:10px;border-radius:50%}
+
+  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-secondary);font-weight:500;margin:32px 0 14px;display:flex;align-items:center;gap:6px}
+  .upcoming-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .upcoming-card{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .18s}
+  .upcoming-card:hover{border-color:var(--border-strong);transform:translateY(-1px)}
+  .upcoming-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .upcoming-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .upcoming-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
+  .upcoming-time{font-size:12px;color:var(--text-muted);margin-top:2px}
+  .upcoming-date-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--gold);line-height:1}
+  .upcoming-date-mon{font-size:11px;color:var(--text-muted);text-transform:uppercase;text-align:right}
+  .upcoming-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;margin-top:10px}
+  .badge-confirmed{background:rgba(201,168,76,0.15);color:#fbbf24}
+  .badge-pending{background:var(--blue-dim);color:var(--blue)}
+
+  /* OVERLAY / MODAL */
+  .overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+  @media(min-width:600px){.overlay{align-items:center;padding:20px}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:24px 24px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
+  @media(min-width:600px){.modal{border-radius:20px}}
+  .modal-header{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--border);padding:20px 22px;display:flex;align-items:flex-start;justify-content:space-between}
+  .modal-pretitle{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:2px}
+  .modal-date{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--gold-light)}
+  .modal-close{background:var(--elevated);border:1px solid var(--border);color:var(--text-secondary);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+  .modal-close:hover{color:var(--text)}
+  .modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+  .modal-footer{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:14px 22px;display:flex;flex-direction:column;gap:8px}
+
+  /* Event picker */
+  .event-picker{display:flex;flex-direction:column;gap:8px}
+  .pick-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s}
+  .pick-item:hover{border-color:var(--border-strong);background:var(--hover)}
+  .pick-time{font-size:13px;font-weight:500;color:var(--gold);min-width:90px;flex-shrink:0}
+  .pick-info{flex:1;min-width:0}
+  .pick-name{font-size:13px;color:var(--text)}
+  .pick-type{font-size:11px;color:var(--text-muted)}
+  .pick-new{border-style:dashed;justify-content:center;font-size:13px;color:var(--text-secondary)}
+  .pick-new:hover{border-color:var(--gold);color:var(--gold)}
+
+  /* Status */
+  .status-row{display:flex;gap:8px}
+  .status-btn{flex:1;padding:9px 6px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;border:1px solid var(--border);background:var(--elevated);color:var(--text-secondary)}
+  .status-btn.active-confirmed{background:rgba(251,191,36,0.14);border-color:rgba(251,191,36,0.5);color:#fbbf24}
+  .status-btn.active-pending{background:var(--blue-dim);border-color:rgba(96,165,250,0.4);color:var(--blue)}
+  .status-btn.active-cancelled{background:var(--red-dim);border-color:rgba(239,68,68,0.3);color:#f87171}
+  .status-btn:disabled{opacity:.7;cursor:default}
+
+  /* Time block */
+  .time-block{background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .time-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px}
+  .time-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .time-field label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:5px}
+  .time-field input[type="time"]{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+  .time-field input[type="time"]:focus{border-color:var(--gold)}
+  .time-field input[type="time"]:disabled{opacity:.7}
+  .time-info{margin-top:10px;font-size:12px;color:var(--text-secondary);min-height:18px;line-height:1.4}
+  .time-info.overnight{color:var(--gold)}
+  .time-info.conflict{color:var(--red)}
+
+  /* Fields */
+  .field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;background:var(--elevated);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+  .field input::placeholder,.field textarea::placeholder{color:var(--text-muted)}
+  .field input:disabled,.field select:disabled,.field textarea:disabled{opacity:.7;cursor:default}
+  .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a4744' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;background-color:var(--elevated)}
+  .field select option{background:#1a1a1a}
+  .field textarea{resize:vertical;min-height:72px}
+
+  /* Dropzone */
+  .dropzone{border:2px dashed var(--border-strong);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .2s}
+  .dropzone:hover,.dropzone.drag-over{border-color:var(--gold);background:var(--gold-dim)}
+  .dropzone-icon{font-size:24px;margin-bottom:6px}
+  .dropzone-text{font-size:13px;color:var(--text-secondary)}
+  .dropzone-hint{font-size:11px;color:var(--text-muted);margin-top:3px}
+  .file-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+  .file-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:10px}
+  .file-icon{width:32px;height:32px;border-radius:8px;background:var(--hover);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .file-info{flex:1;min-width:0}
+  .file-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .file-size{font-size:11px;color:var(--text-muted)}
+  .file-actions{display:flex;gap:4px}
+  .file-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;font-size:14px;transition:color .15s;display:flex;align-items:center}
+  .file-btn:hover{color:var(--text)}
+  .file-btn.del:hover{color:var(--red)}
+  .file-pending{border-color:rgba(201,168,76,0.25);background:rgba(201,168,76,0.07)}
+  .file-pending .file-name{color:var(--gold-light)}
+
+  /* Buttons */
+  .btn{width:100%;padding:13px;border-radius:12px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .18s}
+  .btn-primary{background:var(--gold);color:#000}
+  .btn-primary:hover{background:var(--gold-light)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+  .btn-danger:hover{background:rgba(239,68,68,0.2)}
+  .btn-ghost{background:var(--elevated);color:var(--text-secondary);border:1px solid var(--border)}
+  .btn-edit{padding:7px 14px;border-radius:8px;font-size:12px;background:var(--elevated);border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+  .btn-edit:hover{color:var(--text)}
+  .confirm-box{background:var(--red-dim);border:1px solid rgba(239,68,68,0.22);border-radius:12px;padding:12px 14px;text-align:center}
+  .confirm-box p{font-size:13px;color:#f87171;margin-bottom:10px}
+  .confirm-row{display:flex;gap:8px}
+  .confirm-row .btn{padding:9px;font-size:13px}
+  .progress{height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+  .progress-bar{height:100%;background:var(--gold);border-radius:1px;transition:width .3s}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--elevated);border:1px solid var(--border-strong);color:var(--text);padding:10px 20px;border-radius:99px;font-size:13px;z-index:200;animation:fadeIn .25s ease;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+  .toast.success{border-color:rgba(52,211,153,0.4);color:var(--green)}
+  .toast.error{border-color:rgba(239,68,68,0.4);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- ═══ CONFIG — suas chaves aqui ═══ -->
+<script>
+  const SUPABASE_URL = 'https://lwtfgqsmuvgxwngsqynt.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dGZncXNtdXZneHduZ3NxeW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjAxNTgsImV4cCI6MjA5MjE5NjE1OH0.usrY-1zzjbGsDy2id2DKgE9R7HTLfTcQrvOfhlbSTbI'
+  const NOME_ESPACO = 'Meu Espaço de Eventos'
+</script>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🗓</div>
+      <div>
+        <div class="logo-title" id="logoTitle">...</div>
+        <div class="logo-sub">Gestão de Reservas</div>
+      </div>
+    </div>
+    <button class="refresh-btn" onclick="loadReservations()" id="refreshBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Atualizar
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">✅ Confirmadas</div><div class="stat-value" id="statC" style="color:var(--gold)">—</div></div>
+    <div class="stat-card"><div class="stat-label">⏳ Pendentes</div><div class="stat-value" id="statP" style="color:var(--blue)">—</div></div>
+    <div class="stat-card"><div class="stat-label">📅 Disponíveis</div><div class="stat-value" id="statA" style="color:var(--green)">—</div></div>
+  </div>
+  <div class="cal-card">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
+      <div><div class="cal-month-title" id="calTitle"></div><div class="cal-year" id="calYear"></div></div>
+      <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-weekdays">
+      <div class="cal-weekday">Dom</div><div class="cal-weekday">Seg</div><div class="cal-weekday">Ter</div>
+      <div class="cal-weekday">Qua</div><div class="cal-weekday">Qui</div><div class="cal-weekday">Sex</div><div class="cal-weekday">Sáb</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div>Confirmado</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Pendente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f87171;opacity:.6"></div>Cancelado</div>
+      <div class="legend-item"><div class="legend-dot" style="background:transparent;border:2px solid var(--gold)"></div>Hoje</div>
+    </div>
+  </div>
+  <div id="upcomingSection" style="display:none">
+    <div class="section-title">✨ Próximas Reservas</div>
+    <div class="upcoming-grid" id="upcomingGrid"></div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" style="display:none" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-pretitle" id="mPre"></div><div class="modal-date" id="mDate"></div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-edit" id="editBtn" style="display:none" onclick="enableEdit()">Editar</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-footer" id="mFoot"></div>
+  </div>
+</div>
+
+<script>
+// ═══ STATE ═══
+let sb, reservations=[], currentMonth=new Date()
+let selDate=null, selReservation=null
+let editing=false, curStatus='pending'
+let pendingFiles=[], existingFiles=[]
+
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+const MONTHS_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+const MONTHS_SHORT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('logoTitle').textContent = NOME_ESPACO
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  loadReservations()
+})
+
+// ═══ DATA ═══
+async function loadReservations() {
+  document.getElementById('refreshBtn').classList.add('spinning')
+  try {
+    const {data,error} = await sb.from('reservations').select('*').order('event_date').order('start_time')
+    if (error) throw error
+    reservations = data||[]
+    renderCalendar(); renderStats(); renderUpcoming()
+  } catch(e){ toast('Erro: '+e.message,'error') }
+  finally { document.getElementById('refreshBtn').classList.remove('spinning') }
+}
+
+// ═══ TIME UTILS ═══
+const toMins = t => { if(!t)return 0; const[h,m]=t.split(':').map(Number); return h*60+m }
+const isOvernight = (s,e) => s&&e&&toMins(e)<toMins(s)
+const fmtT = t => t?t.substring(0,5):''
+function durStr(s,e,over) {
+  if(!s||!e)return ''
+  let m=toMins(e)-toMins(s); if(over||m<0)m+=1440
+  const h=Math.floor(m/60),mn=m%60
+  return h>0?(mn>0?`${h}h${mn}min`:`${h}h`):`${mn}min`
+}
+function checkConflict(dateStr, ns, ne, nOver, excludeId) {
+  const res=[]
+  const prev=dateOffset(dateStr,-1), next=dateOffset(dateStr,1)
+  for(const r of reservations){
+    if(r.id===excludeId||r.status==='cancelled'||!r.start_time||!r.end_time)continue
+    const rs=r.start_time,re=r.end_time,ro=r.ends_next_day
+    // same day
+    if(r.event_date===dateStr && overlap(ns,ne,nOver,rs,re,ro)) res.push(r)
+    // overnight spill from prev day
+    if(r.event_date===prev&&ro && overlap(ns,ne,nOver,'00:00',re,false)) res.push(r)
+    // new event overnight spills to next day
+    if(nOver&&r.event_date===next && overlap('00:00',ne,false,rs,re,ro)) res.push(r)
+  }
+  return res
+}
+function overlap(s1,e1,o1,s2,e2,o2){
+  let a1=toMins(s1),b1=toMins(e1)+(o1?1440:0)
+  let a2=toMins(s2),b2=toMins(e2)+(o2?1440:0)
+  if(b1<=a1)b1=a1+1; if(b2<=a2)b2=a2+1
+  return a1<b2&&b1>a2
+}
+function getEvents(dateStr, all=false) {
+  const res=[]
+  for(const r of reservations){
+    if(!all&&r.status==='cancelled')continue
+    if(r.event_date===dateStr){res.push(r);continue}
+    if(r.event_date===dateOffset(dateStr,-1)&&r.ends_next_day)res.push(r)
+  }
+  return res
+}
+function dateOffset(ds,d){
+  const dt=new Date(ds+'T00:00:00');dt.setDate(dt.getDate()+d);return fmtDate(dt)
+}
+function fmtDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ═══ CALENDAR ═══
+function changeMonth(d){ currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+d,1); renderCalendar(); renderStats() }
+
+function renderCalendar(){
+  const Y=currentMonth.getFullYear(),M=currentMonth.getMonth()
+  document.getElementById('calTitle').textContent=MONTHS[M]
+  document.getElementById('calYear').textContent=Y
+  const first=new Date(Y,M,1).getDay(),days=new Date(Y,M+1,0).getDate(),prev=new Date(Y,M,0).getDate()
+  const today=new Date();today.setHours(0,0,0,0)
+  const grid=document.getElementById('calGrid');grid.innerHTML=''
+  const total=Math.ceil((first+days)/7)*7
+
+  for(let i=0;i<total;i++){
+    const div=document.createElement('div');div.className='cal-day'
+    let num,other=false,ds
+    if(i<first){num=prev-first+i+1;other=true;ds=fmtDate(new Date(Y,M-1,num))}
+    else if(i>=first+days){num=i-first-days+1;other=true;ds=fmtDate(new Date(Y,M+1,num))}
+    else{num=i-first+1;ds=fmtDate(new Date(Y,M,num))}
+
+    const cd=new Date(ds+'T00:00:00')
+    const isPast=cd<today,isTod=cd.getTime()===today.getTime()
+    const evs=getEvents(ds),allEvs=getEvents(ds,true)
+    const hasCon=evs.some(r=>r.status==='confirmed')
+    const hasPen=evs.some(r=>r.status==='pending')&&!hasCon
+
+    if(other)div.classList.add('other-month')
+    else{
+      if(allEvs.length)div.classList.add('has-events')
+      if(hasCon)div.classList.add('has-confirmed')
+      else if(hasPen)div.classList.add('has-pending')
+      if(isTod&&!allEvs.length)div.classList.add('today')
+      else if(isPast&&!allEvs.length)div.classList.add('past')
+    }
+
+    let nc='var(--text)'
+    if(isTod&&!allEvs.length)nc='var(--gold-light)'
+    else if(hasCon)nc='#fbbf24'
+    else if(hasPen)nc='var(--blue)'
+    else if(isPast||other)nc='var(--text-muted)'
+
+    let dots=''
+    if(allEvs.length){
+      dots=`<div class="day-dots">${allEvs.slice(0,3).map(r=>`<div class="day-dot" style="background:${r.status==='confirmed'?'#fbbf24':r.status==='pending'?'var(--blue)':'#f87171'}"></div>`).join('')}</div>`
+      if(allEvs.length>1)dots+=`<div class="day-count">${allEvs.length}x</div>`
+    }
+    div.innerHTML=`<span class="day-num" style="color:${nc}">${num}</span>${dots}`
+
+    if(!other) div.addEventListener('click',()=>dayClick(cd,ds,allEvs,isPast))
+    grid.appendChild(div)
+  }
+}
+
+function dayClick(date,ds,evs,past){
+  selDate=date
+  if(!evs.length){if(past)return;openForm(null)}
+  else if(evs.length===1)openForm(evs[0])
+  else openPicker(evs)
+}
+
+// ═══ STATS ═══
+function renderStats(){
+  const Y=currentMonth.getFullYear(),M=currentMonth.getMonth()
+  const today=new Date();today.setHours(0,0,0,0)
+  const days=new Date(Y,M+1,0).getDate()
+  const mr=reservations.filter(r=>{const d=new Date((r.event_date||'')+'T00:00:00');return d.getFullYear()===Y&&d.getMonth()===M})
+  let av=0
+  for(let d=1;d<=days;d++){const dt=new Date(Y,M,d);dt.setHours(0,0,0,0);if(dt>=today&&!getEvents(fmtDate(dt)).length)av++}
+  document.getElementById('statC').textContent=mr.filter(r=>r.status==='confirmed').length
+  document.getElementById('statP').textContent=mr.filter(r=>r.status==='pending').length
+  document.getElementById('statA').textContent=av
+}
+
+// ═══ UPCOMING ═══
+function renderUpcoming(){
+  const today=new Date();today.setHours(0,0,0,0)
+  const up=reservations.filter(r=>r.status!=='cancelled'&&new Date((r.event_date||'')+'T00:00:00')>=today).slice(0,6)
+  const sec=document.getElementById('upcomingSection'),grid=document.getElementById('upcomingGrid')
+  if(!up.length){sec.style.display='none';return}
+  sec.style.display='block'
+  grid.innerHTML=up.map(r=>{
+    const d=new Date((r.event_date||'')+'T00:00:00')
+    const ts=r.start_time?`${fmtT(r.start_time)}${r.end_time?' → '+fmtT(r.end_time):''}${r.ends_next_day?' (+1d)':''}`:''
+    return `<div class="upcoming-card" onclick="selDate=new Date('${r.event_date}T00:00:00');openForm(reservations.find(x=>x.id==='${r.id}'))">
+      <div class="upcoming-top">
+        <div style="min-width:0">
+          <div class="upcoming-name">${esc(r.client_name)}</div>
+          <div class="upcoming-sub">${esc(r.event_type||'Evento')}</div>
+          ${ts?`<div class="upcoming-time">🕐 ${ts}</div>`:''}
+        </div>
+        <div><div class="upcoming-date-num">${d.getDate()}</div><div class="upcoming-date-mon">${MONTHS_SHORT[d.getMonth()]}</div></div>
+      </div>
+      <span class="upcoming-badge ${r.status==='confirmed'?'badge-confirmed':'badge-pending'}">${r.status==='confirmed'?'✓ Confirmado':'⏳ Pendente'}</span>
+      ${(r.files||[]).length?`<span style="font-size:11px;color:var(--text-muted);margin-left:6px">📎 ${r.files.length}</span>`:''}
+    </div>`
+  }).join('')
+}
+
+// ═══ MODAL ═══
+function openModal(){document.getElementById('overlay').style.display='flex';document.body.style.overflow='hidden'}
+function closeModal(){document.getElementById('overlay').style.display='none';document.body.style.overflow='';selDate=null;selReservation=null;pendingFiles=[];existingFiles=[]}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeModal()}
+function setDateHeader(pre){
+  document.getElementById('mPre').textContent=pre
+  document.getElementById('mDate').textContent=`${selDate.getDate()} de ${MONTHS_LONG[selDate.getMonth()]}, ${selDate.getFullYear()}`
+}
+
+// ── Picker (multiple events) ──
+function openPicker(evs){
+  document.getElementById('editBtn').style.display='none'
+  setDateHeader('Escolha o evento')
+  document.getElementById('mBody').innerHTML=`<div class="event-picker">
+    ${evs.map(r=>{
+      const ts=r.start_time?`${fmtT(r.start_time)}${r.end_time?' → '+fmtT(r.end_time):''}${r.ends_next_day?' (+1d)':''}`:'-'
+      const dot=r.status==='confirmed'?'#fbbf24':r.status==='pending'?'var(--blue)':'#f87171'
+      return `<div class="pick-item" onclick="openForm(reservations.find(x=>x.id==='${r.id}'))">
+        <div style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></div>
+        <div class="pick-info"><div class="pick-name">${esc(r.client_name)}</div><div class="pick-type">${esc(r.event_type||'Evento')}</div></div>
+        <div class="pick-time">${ts}</div>
+      </div>`
+    }).join('')}
+    <div class="pick-item pick-new" onclick="openForm(null)">+ Nova reserva neste dia</div>
+  </div>`
+  document.getElementById('mFoot').innerHTML=''
+  openModal()
+}
+
+// ── Form ──
+function openForm(reservation){
+  selReservation=reservation||null
+  existingFiles=reservation?(reservation.files||[]):[]
+  pendingFiles=[]
+  editing=!reservation
+  curStatus=reservation?.status||'pending'
+  document.getElementById('editBtn').style.display=reservation?'flex':'none'
+  setDateHeader(reservation?'Detalhes da Reserva':'Nova Reserva')
+  buildForm()
+  openModal()
+}
+function enableEdit(){editing=true;document.getElementById('editBtn').style.display='none';buildForm()}
+
+function buildForm(){
+  const r=selReservation,dis=!editing
+  const s=r?.start_time?fmtT(r.start_time):'',e=r?.end_time?fmtT(r.end_time):''
+
+  document.getElementById('mBody').innerHTML=`
+    <div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px">Status</div>
+      <div class="status-row">
+        <button class="status-btn${curStatus==='confirmed'?' active-confirmed':''}" id="btn-confirmed" onclick="setStatus('confirmed')" ${dis?'disabled':''}>✓ Confirmado</button>
+        <button class="status-btn${curStatus==='pending'?' active-pending':''}" id="btn-pending" onclick="setStatus('pending')" ${dis?'disabled':''}>⏳ Pendente</button>
+        <button class="status-btn${curStatus==='cancelled'?' active-cancelled':''}" id="btn-cancelled" onclick="setStatus('cancelled')" ${dis?'disabled':''}>✕ Cancelado</button>
+      </div>
+    </div>
+    <div class="time-block">
+      <div class="time-label">🕐 Horário do Evento</div>
+      <div class="time-row">
+        <div class="time-field"><label>Início</label><input type="time" id="fS" value="${s}" ${dis?'disabled':''} oninput="updateTimeInfo()"/></div>
+        <div class="time-field"><label>Término</label><input type="time" id="fE" value="${e}" ${dis?'disabled':''} oninput="updateTimeInfo()"/></div>
+      </div>
+      <div class="time-info" id="tInfo"></div>
+    </div>
+    <div class="field"><label>👤 Nome do Cliente *</label><input type="text" id="fN" placeholder="Nome completo" value="${esc(r?.client_name||'')}" ${dis?'disabled':''}/></div>
+    <div class="field"><label>📱 Telefone</label><input type="tel" id="fPh" placeholder="(00) 00000-0000" value="${esc(r?.client_phone||'')}" ${dis?'disabled':''}/></div>
+    <div class="field"><label>🎉 Tipo de Evento</label>
+      <select id="fTy" ${dis?'disabled':''}>
+        <option value="">Selecione...</option>
+        ${['Casamento','Aniversário','Formatura','Evento Corporativo','Batizado','Chá de bebê','Chá de panela','Festa Infantil','Confraternização','Show / Apresentação','Outro'].map(t=>`<option${(r?.event_type||'')==t?' selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field"><label>📝 Observações</label><textarea id="fNo" ${dis?'disabled':''}>${esc(r?.notes||'')}</textarea></div>
+    <div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px">📎 Arquivos</div>
+      <div id="fList"></div>
+      <div class="dropzone" id="dz" style="${dis?'display:none':''}" onclick="document.getElementById('fInput').click()">
+        <div class="dropzone-icon">☁️</div>
+        <div class="dropzone-text">Arraste ou clique para selecionar</div>
+        <div class="dropzone-hint">JPG, PNG, PDF, DOC — máx. 10MB</div>
+      </div>
+      <input type="file" id="fInput" multiple accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="handleFiles(event)"/>
+      <div class="progress" id="prog" style="display:none"><div class="progress-bar" id="progBar" style="width:0%"></div></div>
+    </div>`
+
+  document.getElementById('mFoot').innerHTML=
+    (editing?`<button class="btn btn-primary" id="saveBtn" onclick="save()">${r?'Salvar Alterações':'Criar Reserva'}</button>`:'')
+    +(r?`<div id="delSec"><button class="btn btn-danger" onclick="confirmDel()">Excluir Reserva</button></div>`:'')
+
+  renderFiles(); updateTimeInfo(); setupDZ()
+}
+
+function setStatus(v){
+  curStatus=v
+  ;['confirmed','pending','cancelled'].forEach(s=>{
+    const b=document.getElementById('btn-'+s)
+    if(b)b.className='status-btn'+(s===v?' active-'+s:'')
+  })
+  updateTimeInfo()
+}
+
+function updateTimeInfo(){
+  const inf=document.getElementById('tInfo');if(!inf)return
+  const s=document.getElementById('fS')?.value,e=document.getElementById('fE')?.value
+  if(!s||!e){inf.textContent='';return}
+  const over=isOvernight(s,e),dur=durStr(s,e,over)
+  const ds=fmtDate(selDate)
+  const conf=checkConflict(ds,s,e,over,selReservation?.id)
+  if(conf.length){
+    inf.className='time-info conflict'
+    inf.innerHTML=`⚠️ Conflito com: <strong>${conf.map(r=>esc(r.client_name)+' ('+fmtT(r.start_time)+')').join(', ')}</strong>`
+  } else if(over){
+    inf.className='time-info overnight'
+    inf.textContent=`🌙 Vira a madrugada — termina às ${e} do dia seguinte  (${dur})`
+  } else {
+    inf.className='time-info'
+    inf.textContent=dur?`⏱ Duração: ${dur}`:''
+  }
+}
+
+// ═══ FILES ═══
+const fmtSz=b=>b<1048576?`${(b/1024).toFixed(1)} KB`:`${(b/1048576).toFixed(1)} MB`
+const fIcon=t=>t.startsWith('image')?'🖼️':t.includes('pdf')?'📄':'📁'
+
+function renderFiles(){
+  const el=document.getElementById('fList');if(!el)return
+  el.innerHTML=[
+    ...existingFiles.map((f,i)=>`<div class="file-item"><div class="file-icon">${fIcon(f.type)}</div>
+      <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-size">${fmtSz(f.size)}</div></div>
+      <div class="file-actions"><a href="${f.url}" target="_blank" class="file-btn">🔗</a>
+      ${editing?`<button class="file-btn del" onclick="existingFiles.splice(${i},1);renderFiles()">🗑</button>`:''}</div></div>`),
+    ...pendingFiles.map((f,i)=>`<div class="file-item file-pending"><div class="file-icon">${fIcon(f.type)}</div>
+      <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-size">${fmtSz(f.size)} · pendente</div></div>
+      <div class="file-actions"><button class="file-btn del" onclick="pendingFiles.splice(${i},1);renderFiles()">🗑</button></div></div>`)
+  ].join('')
+}
+function setupDZ(){
+  const dz=document.getElementById('dz');if(!dz)return
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')})
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'))
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');Array.from(e.dataTransfer.files).filter(f=>f.size<=10485760).forEach(f=>pendingFiles.push(f));renderFiles()})
+}
+function handleFiles(e){Array.from(e.target.files).filter(f=>f.size<=10485760).forEach(f=>pendingFiles.push(f));e.target.value='';renderFiles()}
+
+// ═══ SAVE ═══
+async function save(){
+  const name=document.getElementById('fN')?.value.trim()
+  if(!name){toast('Nome é obrigatório','error');return}
+  const sv=document.getElementById('fS')?.value,ev=document.getElementById('fE')?.value
+  const over=!!(sv&&ev&&isOvernight(sv,ev))
+  if(sv&&ev){
+    const conf=checkConflict(fmtDate(selDate),sv,ev,over,selReservation?.id)
+    if(conf.length){toast('Conflito de horário com: '+conf[0].client_name,'error');return}
+  }
+  const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Salvando...'
+  try{
+    let uploaded=[...existingFiles]
+    if(pendingFiles.length){
+      document.getElementById('prog').style.display='block'
+      for(let i=0;i<pendingFiles.length;i++){
+        document.getElementById('progBar').style.width=`${(i/pendingFiles.length)*100}%`
+        btn.textContent=`Enviando ${i+1}/${pendingFiles.length}...`
+        const f=pendingFiles[i],path=`${selReservation?.id||'r'+Date.now()}/${Date.now()}-${f.name}`
+        const{error:ue}=await sb.storage.from('reservation-files').upload(path,f,{contentType:f.type})
+        if(!ue){const{data:ud}=sb.storage.from('reservation-files').getPublicUrl(path);uploaded.push({name:f.name,url:ud.publicUrl,type:f.type,size:f.size})}
+      }
+      document.getElementById('progBar').style.width='100%'
+      setTimeout(()=>document.getElementById('prog').style.display='none',400)
+    }
+    const payload={
+      event_date:fmtDate(selDate),
+      client_name:name,
+      client_phone:document.getElementById('fPh')?.value.trim()||'',
+      event_type:document.getElementById('fTy')?.value||'',
+      notes:document.getElementById('fNo')?.value.trim()||'',
+      status:curStatus,
+      start_time:sv||null,end_time:ev||null,ends_next_day:over,files:uploaded
+    }
+    let err
+    if(selReservation){({error:err}=await sb.from('reservations').update(payload).eq('id',selReservation.id))}
+    else{({error:err}=await sb.from('reservations').insert([payload]))}
+    if(err)throw err
+    toast(selReservation?'Atualizado! ✓':'Reserva criada! ✓','success')
+    closeModal(); await loadReservations()
+  }catch(e){toast('Erro: '+e.message,'error');btn.disabled=false;btn.textContent=selReservation?'Salvar Alterações':'Criar Reserva'}
+}
+
+function confirmDel(){
+  document.getElementById('delSec').innerHTML=`<div class="confirm-box"><p>Confirmar exclusão?</p>
+    <div class="confirm-row">
+      <button class="btn btn-ghost" onclick="buildForm()">Cancelar</button>
+      <button class="btn" style="background:var(--red);color:#fff" onclick="doDelete()">Excluir</button>
+    </div></div>`
+}
+async function doDelete(){
+  if(!selReservation)return
+  const{error}=await sb.from('reservations').delete().eq('id',selReservation.id)
+  if(error){toast('Erro: '+error.message,'error');return}
+  toast('Excluído','success'); closeModal(); await loadReservations()
+}
+
+// ═══ TOAST ═══
+let _t
+function toast(msg,type=''){
+  clearTimeout(_t);document.querySelector('.toast')?.remove()
+  const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg
+  document.body.appendChild(el);_t=setTimeout(()=>el.remove(),3000)
+}
+</script>
+</body>
+</html>
