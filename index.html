@@ -8,14 +8,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root {
+  :root{
     --bg:#080808;--surface:#111111;--elevated:#1a1a1a;--hover:#222222;
     --border:rgba(255,255,255,0.07);--border-strong:rgba(255,255,255,0.13);
     --gold:#c9a84c;--gold-light:#e6c97a;--gold-dim:rgba(201,168,76,0.14);
     --text:#f0ece4;--text-secondary:#8a8680;--text-muted:#4a4744;
     --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.12);
     --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
-    --green:#34d399;
+    --green:#34d399;--green-dim:rgba(52,211,153,0.1);
+    --orange:#fb923c;--orange-dim:rgba(251,146,60,0.12);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -24,7 +25,7 @@
   ::selection{background:var(--gold-dim);color:var(--gold-light)}
 
   header{border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;background:rgba(8,8,8,0.92);backdrop-filter:blur(12px)}
-  .header-inner{max-width:900px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+  .header-inner{max-width:960px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
   .logo{display:flex;align-items:center;gap:12px}
   .logo-icon{width:38px;height:38px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:18px}
   .logo-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
@@ -33,13 +34,16 @@
   .refresh-btn:hover{color:var(--gold);border-color:var(--gold-dim)}
   .refresh-btn.spinning svg{animation:spin 1s linear infinite}
 
-  main{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 60px}
 
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  /* ── Stats ── */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .stats2{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
   .stat-card{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
   .stat-label{font-size:11px;color:var(--text-secondary);margin-bottom:6px}
-  .stat-value{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;line-height:1}
+  .stat-value{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;line-height:1}
 
+  /* ── Calendar ── */
   .cal-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden}
   .cal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
   .cal-nav{background:var(--elevated);border:1px solid var(--border);color:var(--text-secondary);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:18px}
@@ -49,7 +53,6 @@
   .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 16px;border-bottom:1px solid var(--border)}
   .cal-weekday{text-align:center;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:12px 14px}
-
   .cal-day{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;border:1px solid transparent;user-select:none}
   .cal-day:hover:not(.other-month):not(.past){background:var(--hover);transform:scale(1.05)}
   .cal-day.other-month{opacity:.18;cursor:default}
@@ -67,27 +70,32 @@
   .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
   .legend-dot{width:10px;height:10px;border-radius:50%}
 
+  /* ── Upcoming ── */
   .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-secondary);font-weight:500;margin:32px 0 14px;display:flex;align-items:center;gap:6px}
-  .upcoming-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .upcoming-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
   .upcoming-card{background:var(--elevated);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .18s}
   .upcoming-card:hover{border-color:var(--border-strong);transform:translateY(-1px)}
   .upcoming-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
   .upcoming-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .upcoming-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
-  .upcoming-time{font-size:12px;color:var(--text-muted);margin-top:2px}
+  .upcoming-sub{font-size:12px;color:var(--text-secondary);margin-top:1px}
+  .upcoming-time{font-size:12px;color:var(--text-muted);margin-top:1px}
   .upcoming-date-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--gold);line-height:1}
   .upcoming-date-mon{font-size:11px;color:var(--text-muted);text-transform:uppercase;text-align:right}
-  .upcoming-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;margin-top:10px}
+  .upcoming-badges{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:9px}
+  .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
   .badge-confirmed{background:rgba(201,168,76,0.15);color:#fbbf24}
   .badge-pending{background:var(--blue-dim);color:var(--blue)}
+  .badge-service{background:var(--orange-dim);color:var(--orange)}
+  .badge-debt{background:var(--red-dim);color:#f87171}
+  .badge-paid{background:var(--green-dim);color:var(--green)}
 
-  /* OVERLAY / MODAL */
+  /* ── OVERLAY / MODAL ── */
   .overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
   @media(min-width:600px){.overlay{align-items:center;padding:20px}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:24px 24px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
+  .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:24px 24px 0 0;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
   @media(min-width:600px){.modal{border-radius:20px}}
   .modal-header{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--border);padding:20px 22px;display:flex;align-items:flex-start;justify-content:space-between}
   .modal-pretitle{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:2px}
@@ -97,7 +105,7 @@
   .modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
   .modal-footer{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:14px 22px;display:flex;flex-direction:column;gap:8px}
 
-  /* Event picker */
+  /* ── Picker ── */
   .event-picker{display:flex;flex-direction:column;gap:8px}
   .pick-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s}
   .pick-item:hover{border-color:var(--border-strong);background:var(--hover)}
@@ -108,7 +116,7 @@
   .pick-new{border-style:dashed;justify-content:center;font-size:13px;color:var(--text-secondary)}
   .pick-new:hover{border-color:var(--gold);color:var(--gold)}
 
-  /* Status */
+  /* ── Status ── */
   .status-row{display:flex;gap:8px}
   .status-btn{flex:1;padding:9px 6px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;border:1px solid var(--border);background:var(--elevated);color:var(--text-secondary)}
   .status-btn.active-confirmed{background:rgba(251,191,36,0.14);border-color:rgba(251,191,36,0.5);color:#fbbf24}
@@ -116,9 +124,9 @@
   .status-btn.active-cancelled{background:var(--red-dim);border-color:rgba(239,68,68,0.3);color:#f87171}
   .status-btn:disabled{opacity:.7;cursor:default}
 
-  /* Time block */
+  /* ── Time block ── */
   .time-block{background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:14px}
-  .time-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px}
+  .block-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px}
   .time-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .time-field label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:5px}
   .time-field input[type="time"]{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
@@ -128,7 +136,37 @@
   .time-info.overnight{color:var(--gold)}
   .time-info.conflict{color:var(--red)}
 
-  /* Fields */
+  /* ── Services block ── */
+  .services-block{background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .service-checks{display:flex;gap:10px;flex-wrap:wrap}
+  .service-check{flex:1;min-width:120px;position:relative}
+  .service-check input[type="checkbox"]{position:absolute;opacity:0;width:0;height:0}
+  .service-check label{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:all .15s;font-size:13px;color:var(--text-secondary);user-select:none}
+  .service-check input:checked + label{border-color:var(--orange);background:var(--orange-dim);color:var(--orange)}
+  .service-check label:hover{border-color:var(--border-strong);color:var(--text)}
+  .service-check input:disabled + label{opacity:.6;cursor:default}
+  .service-check input:disabled + label:hover{border-color:var(--border);color:var(--text-secondary)}
+  .check-icon{font-size:16px}
+
+  /* ── Payment block ── */
+  .payment-block{background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .payment-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .pay-field label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:5px}
+  .pay-field input[type="number"]{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+  .pay-field input[type="number"]:focus{border-color:var(--gold)}
+  .pay-field input[type="number"]:disabled{opacity:.7}
+  .pay-field input[type="number"]::placeholder{color:var(--text-muted)}
+  .payment-summary{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+  .pay-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:13px}
+  .pay-row+.pay-row{border-top:1px solid var(--border)}
+  .pay-row.pending-row{background:var(--red-dim)}
+  .pay-row.pending-row .pay-label{color:#f87171}
+  .pay-row.pending-row .pay-val{color:#f87171;font-weight:600}
+  .pay-row.paid-row .pay-val{color:var(--green)}
+  .pay-label{color:var(--text-secondary)}
+  .pay-val{font-weight:500;font-family:'Cormorant Garamond',serif;font-size:16px}
+
+  /* ── Fields ── */
   .field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px}
   .field input,.field select,.field textarea{width:100%;background:var(--elevated);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
@@ -138,7 +176,7 @@
   .field select option{background:#1a1a1a}
   .field textarea{resize:vertical;min-height:72px}
 
-  /* Dropzone */
+  /* ── Dropzone ── */
   .dropzone{border:2px dashed var(--border-strong);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .2s}
   .dropzone:hover,.dropzone.drag-over{border-color:var(--gold);background:var(--gold-dim)}
   .dropzone-icon{font-size:24px;margin-bottom:6px}
@@ -157,7 +195,7 @@
   .file-pending{border-color:rgba(201,168,76,0.25);background:rgba(201,168,76,0.07)}
   .file-pending .file-name{color:var(--gold-light)}
 
-  /* Buttons */
+  /* ── Buttons ── */
   .btn{width:100%;padding:13px;border-radius:12px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .18s}
   .btn-primary{background:var(--gold);color:#000}
   .btn-primary:hover{background:var(--gold-light)}
@@ -180,7 +218,6 @@
 </head>
 <body>
 
-<!-- ═══ CONFIG — suas chaves aqui ═══ -->
 <script>
   const SUPABASE_URL = 'https://lwtfgqsmuvgxwngsqynt.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dGZncXNtdXZneHduZ3NxeW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjAxNTgsImV4cCI6MjA5MjE5NjE1OH0.usrY-1zzjbGsDy2id2DKgE9R7HTLfTcQrvOfhlbSTbI'
@@ -204,11 +241,19 @@
 </header>
 
 <main>
+  <!-- Stats row 1: reservations -->
   <div class="stats">
     <div class="stat-card"><div class="stat-label">✅ Confirmadas</div><div class="stat-value" id="statC" style="color:var(--gold)">—</div></div>
     <div class="stat-card"><div class="stat-label">⏳ Pendentes</div><div class="stat-value" id="statP" style="color:var(--blue)">—</div></div>
     <div class="stat-card"><div class="stat-label">📅 Disponíveis</div><div class="stat-value" id="statA" style="color:var(--green)">—</div></div>
   </div>
+  <!-- Stats row 2: finances -->
+  <div class="stats2">
+    <div class="stat-card"><div class="stat-label">💰 Recebido no mês</div><div class="stat-value" id="statRec" style="color:var(--green)">—</div></div>
+    <div class="stat-card"><div class="stat-label">⏳ A receber no mês</div><div class="stat-value" id="statDev" style="color:var(--red)">—</div></div>
+    <div class="stat-card"><div class="stat-label">📊 Total do mês</div><div class="stat-value" id="statTot" style="color:var(--gold)">—</div></div>
+  </div>
+
   <div class="cal-card">
     <div class="cal-header">
       <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
@@ -227,6 +272,7 @@
       <div class="legend-item"><div class="legend-dot" style="background:transparent;border:2px solid var(--gold)"></div>Hoje</div>
     </div>
   </div>
+
   <div id="upcomingSection" style="display:none">
     <div class="section-title">✨ Próximas Reservas</div>
     <div class="upcoming-grid" id="upcomingGrid"></div>
@@ -249,67 +295,85 @@
 </div>
 
 <script>
-// ═══ STATE ═══
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
 let sb, reservations=[], currentMonth=new Date()
 let selDate=null, selReservation=null
 let editing=false, curStatus='pending'
 let pendingFiles=[], existingFiles=[]
 
-const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
-const MONTHS_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-const MONTHS_SHORT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+const MONTHS_LONG=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+const MONTHS_SHORT=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
 
-// ═══ INIT ═══
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('logoTitle').textContent = NOME_ESPACO
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('logoTitle').textContent=NOME_ESPACO
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)
   loadReservations()
 })
 
-// ═══ DATA ═══
-async function loadReservations() {
+// ═══════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════
+async function loadReservations(){
   document.getElementById('refreshBtn').classList.add('spinning')
-  try {
-    const {data,error} = await sb.from('reservations').select('*').order('event_date').order('start_time')
-    if (error) throw error
-    reservations = data||[]
-    renderCalendar(); renderStats(); renderUpcoming()
-  } catch(e){ toast('Erro: '+e.message,'error') }
-  finally { document.getElementById('refreshBtn').classList.remove('spinning') }
+  try{
+    const{data,error}=await sb.from('reservations').select('*').order('event_date').order('start_time')
+    if(error)throw error
+    reservations=data||[]
+    renderCalendar();renderStats();renderUpcoming()
+  }catch(e){toast('Erro: '+e.message,'error')}
+  finally{document.getElementById('refreshBtn').classList.remove('spinning')}
 }
 
-// ═══ TIME UTILS ═══
-const toMins = t => { if(!t)return 0; const[h,m]=t.split(':').map(Number); return h*60+m }
-const isOvernight = (s,e) => s&&e&&toMins(e)<toMins(s)
-const fmtT = t => t?t.substring(0,5):''
-function durStr(s,e,over) {
+// ═══════════════════════════════════════
+//  MONEY UTILS
+// ═══════════════════════════════════════
+function fmtMoney(v){
+  const n=parseFloat(v)||0
+  return 'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')
+}
+function fmtMoneyShort(v){
+  const n=parseFloat(v)||0
+  if(n>=1000)return 'R$'+(n/1000).toFixed(1).replace('.',',')+'k'
+  return 'R$'+n.toFixed(0)
+}
+
+// ═══════════════════════════════════════
+//  TIME UTILS
+// ═══════════════════════════════════════
+const toMins=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m}
+const isOvernight=(s,e)=>s&&e&&toMins(e)<toMins(s)
+const fmtT=t=>t?t.substring(0,5):''
+function durStr(s,e,over){
   if(!s||!e)return ''
-  let m=toMins(e)-toMins(s); if(over||m<0)m+=1440
+  let m=toMins(e)-toMins(s);if(over||m<0)m+=1440
   const h=Math.floor(m/60),mn=m%60
   return h>0?(mn>0?`${h}h${mn}min`:`${h}h`):`${mn}min`
 }
-function checkConflict(dateStr, ns, ne, nOver, excludeId) {
+function checkConflict(dateStr,ns,ne,nOver,excludeId){
   const res=[]
-  const prev=dateOffset(dateStr,-1), next=dateOffset(dateStr,1)
+  const prev=dateOffset(dateStr,-1),next=dateOffset(dateStr,1)
   for(const r of reservations){
     if(r.id===excludeId||r.status==='cancelled'||!r.start_time||!r.end_time)continue
     const rs=r.start_time,re=r.end_time,ro=r.ends_next_day
-    // same day
-    if(r.event_date===dateStr && overlap(ns,ne,nOver,rs,re,ro)) res.push(r)
-    // overnight spill from prev day
-    if(r.event_date===prev&&ro && overlap(ns,ne,nOver,'00:00',re,false)) res.push(r)
-    // new event overnight spills to next day
-    if(nOver&&r.event_date===next && overlap('00:00',ne,false,rs,re,ro)) res.push(r)
+    if(r.event_date===dateStr&&overlap(ns,ne,nOver,rs,re,ro))res.push(r)
+    if(r.event_date===prev&&ro&&overlap(ns,ne,nOver,'00:00',re,false))res.push(r)
+    if(nOver&&r.event_date===next&&overlap('00:00',ne,false,rs,re,ro))res.push(r)
   }
   return res
 }
 function overlap(s1,e1,o1,s2,e2,o2){
   let a1=toMins(s1),b1=toMins(e1)+(o1?1440:0)
   let a2=toMins(s2),b2=toMins(e2)+(o2?1440:0)
-  if(b1<=a1)b1=a1+1; if(b2<=a2)b2=a2+1
+  if(b1<=a1)b1=a1+1;if(b2<=a2)b2=a2+1
   return a1<b2&&b1>a2
 }
-function getEvents(dateStr, all=false) {
+function getEvents(dateStr,all=false){
   const res=[]
   for(const r of reservations){
     if(!all&&r.status==='cancelled')continue
@@ -318,14 +382,14 @@ function getEvents(dateStr, all=false) {
   }
   return res
 }
-function dateOffset(ds,d){
-  const dt=new Date(ds+'T00:00:00');dt.setDate(dt.getDate()+d);return fmtDate(dt)
-}
+function dateOffset(ds,d){const dt=new Date(ds+'T00:00:00');dt.setDate(dt.getDate()+d);return fmtDate(dt)}
 function fmtDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
-// ═══ CALENDAR ═══
-function changeMonth(d){ currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+d,1); renderCalendar(); renderStats() }
+// ═══════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════
+function changeMonth(d){currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+d,1);renderCalendar();renderStats()}
 
 function renderCalendar(){
   const Y=currentMonth.getFullYear(),M=currentMonth.getMonth()
@@ -370,8 +434,7 @@ function renderCalendar(){
       if(allEvs.length>1)dots+=`<div class="day-count">${allEvs.length}x</div>`
     }
     div.innerHTML=`<span class="day-num" style="color:${nc}">${num}</span>${dots}`
-
-    if(!other) div.addEventListener('click',()=>dayClick(cd,ds,allEvs,isPast))
+    if(!other)div.addEventListener('click',()=>dayClick(cd,ds,allEvs,isPast))
     grid.appendChild(div)
   }
 }
@@ -383,20 +446,38 @@ function dayClick(date,ds,evs,past){
   else openPicker(evs)
 }
 
-// ═══ STATS ═══
+// ═══════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════
 function renderStats(){
   const Y=currentMonth.getFullYear(),M=currentMonth.getMonth()
   const today=new Date();today.setHours(0,0,0,0)
   const days=new Date(Y,M+1,0).getDate()
-  const mr=reservations.filter(r=>{const d=new Date((r.event_date||'')+'T00:00:00');return d.getFullYear()===Y&&d.getMonth()===M})
+  const mr=reservations.filter(r=>{
+    const d=new Date((r.event_date||'')+'T00:00:00')
+    return d.getFullYear()===Y&&d.getMonth()===M
+  })
   let av=0
   for(let d=1;d<=days;d++){const dt=new Date(Y,M,d);dt.setHours(0,0,0,0);if(dt>=today&&!getEvents(fmtDate(dt)).length)av++}
+
   document.getElementById('statC').textContent=mr.filter(r=>r.status==='confirmed').length
   document.getElementById('statP').textContent=mr.filter(r=>r.status==='pending').length
   document.getElementById('statA').textContent=av
+
+  // Finance stats — only non-cancelled
+  const active=mr.filter(r=>r.status!=='cancelled')
+  const totalRec=active.reduce((s,r)=>s+(parseFloat(r.valor_pago)||0),0)
+  const totalDev=active.reduce((s,r)=>s+Math.max(0,(parseFloat(r.valor_total)||0)-(parseFloat(r.valor_pago)||0)),0)
+  const totalTot=active.reduce((s,r)=>s+(parseFloat(r.valor_total)||0),0)
+
+  document.getElementById('statRec').textContent=fmtMoneyShort(totalRec)
+  document.getElementById('statDev').textContent=fmtMoneyShort(totalDev)
+  document.getElementById('statTot').textContent=fmtMoneyShort(totalTot)
 }
 
-// ═══ UPCOMING ═══
+// ═══════════════════════════════════════
+//  UPCOMING
+// ═══════════════════════════════════════
 function renderUpcoming(){
   const today=new Date();today.setHours(0,0,0,0)
   const up=reservations.filter(r=>r.status!=='cancelled'&&new Date((r.event_date||'')+'T00:00:00')>=today).slice(0,6)
@@ -406,6 +487,10 @@ function renderUpcoming(){
   grid.innerHTML=up.map(r=>{
     const d=new Date((r.event_date||'')+'T00:00:00')
     const ts=r.start_time?`${fmtT(r.start_time)}${r.end_time?' → '+fmtT(r.end_time):''}${r.ends_next_day?' (+1d)':''}`:''
+    const total=parseFloat(r.valor_total)||0
+    const pago=parseFloat(r.valor_pago)||0
+    const dev=Math.max(0,total-pago)
+    const services=[r.has_assador&&'🔥 Assador',r.has_suite&&'🛏 Suíte'].filter(Boolean)
     return `<div class="upcoming-card" onclick="selDate=new Date('${r.event_date}T00:00:00');openForm(reservations.find(x=>x.id==='${r.id}'))">
       <div class="upcoming-top">
         <div style="min-width:0">
@@ -415,13 +500,18 @@ function renderUpcoming(){
         </div>
         <div><div class="upcoming-date-num">${d.getDate()}</div><div class="upcoming-date-mon">${MONTHS_SHORT[d.getMonth()]}</div></div>
       </div>
-      <span class="upcoming-badge ${r.status==='confirmed'?'badge-confirmed':'badge-pending'}">${r.status==='confirmed'?'✓ Confirmado':'⏳ Pendente'}</span>
-      ${(r.files||[]).length?`<span style="font-size:11px;color:var(--text-muted);margin-left:6px">📎 ${r.files.length}</span>`:''}
+      <div class="upcoming-badges">
+        <span class="badge ${r.status==='confirmed'?'badge-confirmed':'badge-pending'}">${r.status==='confirmed'?'✓ Confirmado':'⏳ Pendente'}</span>
+        ${services.map(s=>`<span class="badge badge-service">${s}</span>`).join('')}
+        ${total>0?`<span class="badge ${dev>0?'badge-debt':'badge-paid'}">${dev>0?'Falta '+fmtMoneyShort(dev):'Pago'}</span>`:''}
+      </div>
     </div>`
   }).join('')
 }
 
-// ═══ MODAL ═══
+// ═══════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════
 function openModal(){document.getElementById('overlay').style.display='flex';document.body.style.overflow='hidden'}
 function closeModal(){document.getElementById('overlay').style.display='none';document.body.style.overflow='';selDate=null;selReservation=null;pendingFiles=[];existingFiles=[]}
 function overlayClick(e){if(e.target===document.getElementById('overlay'))closeModal()}
@@ -430,7 +520,7 @@ function setDateHeader(pre){
   document.getElementById('mDate').textContent=`${selDate.getDate()} de ${MONTHS_LONG[selDate.getMonth()]}, ${selDate.getFullYear()}`
 }
 
-// ── Picker (multiple events) ──
+// ── Picker ──
 function openPicker(evs){
   document.getElementById('editBtn').style.display='none'
   setDateHeader('Escolha o evento')
@@ -466,9 +556,15 @@ function enableEdit(){editing=true;document.getElementById('editBtn').style.disp
 
 function buildForm(){
   const r=selReservation,dis=!editing
-  const s=r?.start_time?fmtT(r.start_time):'',e=r?.end_time?fmtT(r.end_time):''
+  const sv=r?.start_time?fmtT(r.start_time):''
+  const ev=r?.end_time?fmtT(r.end_time):''
+  const hasAssador=r?.has_assador||false
+  const hasSuite=r?.has_suite||false
+  const valTotal=r?.valor_total!=null?parseFloat(r.valor_total):''
+  const valPago=r?.valor_pago!=null?parseFloat(r.valor_pago):''
 
   document.getElementById('mBody').innerHTML=`
+    <!-- STATUS -->
     <div>
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px">Status</div>
       <div class="status-row">
@@ -477,14 +573,18 @@ function buildForm(){
         <button class="status-btn${curStatus==='cancelled'?' active-cancelled':''}" id="btn-cancelled" onclick="setStatus('cancelled')" ${dis?'disabled':''}>✕ Cancelado</button>
       </div>
     </div>
+
+    <!-- HORÁRIO -->
     <div class="time-block">
-      <div class="time-label">🕐 Horário do Evento</div>
+      <div class="block-label">🕐 Horário do Evento</div>
       <div class="time-row">
-        <div class="time-field"><label>Início</label><input type="time" id="fS" value="${s}" ${dis?'disabled':''} oninput="updateTimeInfo()"/></div>
-        <div class="time-field"><label>Término</label><input type="time" id="fE" value="${e}" ${dis?'disabled':''} oninput="updateTimeInfo()"/></div>
+        <div class="time-field"><label>Início</label><input type="time" id="fS" value="${sv}" ${dis?'disabled':''} oninput="updateTimeInfo()"/></div>
+        <div class="time-field"><label>Término</label><input type="time" id="fE" value="${ev}" ${dis?'disabled':''} oninput="updateTimeInfo()"/></div>
       </div>
       <div class="time-info" id="tInfo"></div>
     </div>
+
+    <!-- DADOS DO CLIENTE -->
     <div class="field"><label>👤 Nome do Cliente *</label><input type="text" id="fN" placeholder="Nome completo" value="${esc(r?.client_name||'')}" ${dis?'disabled':''}/></div>
     <div class="field"><label>📱 Telefone</label><input type="tel" id="fPh" placeholder="(00) 00000-0000" value="${esc(r?.client_phone||'')}" ${dis?'disabled':''}/></div>
     <div class="field"><label>🎉 Tipo de Evento</label>
@@ -493,7 +593,42 @@ function buildForm(){
         ${['Casamento','Aniversário','Formatura','Evento Corporativo','Batizado','Chá de bebê','Chá de panela','Festa Infantil','Confraternização','Show / Apresentação','Outro'].map(t=>`<option${(r?.event_type||'')==t?' selected':''}>${t}</option>`).join('')}
       </select>
     </div>
+
+    <!-- SERVIÇOS OPCIONAIS -->
+    <div class="services-block">
+      <div class="block-label">🏡 Serviços Adicionais</div>
+      <div class="service-checks">
+        <div class="service-check">
+          <input type="checkbox" id="chkAssador" ${hasAssador?'checked':''} ${dis?'disabled':''}/>
+          <label for="chkAssador"><span class="check-icon">🔥</span> Assador</label>
+        </div>
+        <div class="service-check">
+          <input type="checkbox" id="chkSuite" ${hasSuite?'checked':''} ${dis?'disabled':''}/>
+          <label for="chkSuite"><span class="check-icon">🛏</span> Suíte</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div class="payment-block">
+      <div class="block-label">💰 Financeiro</div>
+      <div class="payment-grid">
+        <div class="pay-field">
+          <label>Valor Total (R$)</label>
+          <input type="number" id="fVT" placeholder="0,00" min="0" step="0.01" value="${valTotal!==''?valTotal:''}" ${dis?'disabled':''} oninput="updatePaySummary()"/>
+        </div>
+        <div class="pay-field">
+          <label>Valor Pago (R$)</label>
+          <input type="number" id="fVP" placeholder="0,00" min="0" step="0.01" value="${valPago!==''?valPago:''}" ${dis?'disabled':''} oninput="updatePaySummary()"/>
+        </div>
+      </div>
+      <div id="paySummary"></div>
+    </div>
+
+    <!-- OBSERVAÇÕES -->
     <div class="field"><label>📝 Observações</label><textarea id="fNo" ${dis?'disabled':''}>${esc(r?.notes||'')}</textarea></div>
+
+    <!-- ARQUIVOS -->
     <div>
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px">📎 Arquivos</div>
       <div id="fList"></div>
@@ -510,7 +645,7 @@ function buildForm(){
     (editing?`<button class="btn btn-primary" id="saveBtn" onclick="save()">${r?'Salvar Alterações':'Criar Reserva'}</button>`:'')
     +(r?`<div id="delSec"><button class="btn btn-danger" onclick="confirmDel()">Excluir Reserva</button></div>`:'')
 
-  renderFiles(); updateTimeInfo(); setupDZ()
+  renderFiles(); updateTimeInfo(); updatePaySummary(); setupDZ()
 }
 
 function setStatus(v){
@@ -532,16 +667,31 @@ function updateTimeInfo(){
   if(conf.length){
     inf.className='time-info conflict'
     inf.innerHTML=`⚠️ Conflito com: <strong>${conf.map(r=>esc(r.client_name)+' ('+fmtT(r.start_time)+')').join(', ')}</strong>`
-  } else if(over){
+  }else if(over){
     inf.className='time-info overnight'
-    inf.textContent=`🌙 Vira a madrugada — termina às ${e} do dia seguinte  (${dur})`
-  } else {
+    inf.textContent=`🌙 Vira a madrugada — termina às ${e} do dia seguinte (${dur})`
+  }else{
     inf.className='time-info'
     inf.textContent=dur?`⏱ Duração: ${dur}`:''
   }
 }
 
-// ═══ FILES ═══
+function updatePaySummary(){
+  const el=document.getElementById('paySummary');if(!el)return
+  const total=parseFloat(document.getElementById('fVT')?.value)||0
+  const pago=parseFloat(document.getElementById('fVP')?.value)||0
+  if(total<=0&&pago<=0){el.innerHTML='';return}
+  const dev=Math.max(0,total-pago)
+  el.innerHTML=`<div class="payment-summary">
+    <div class="pay-row paid-row"><span class="pay-label">💚 Pago</span><span class="pay-val">${fmtMoney(pago)}</span></div>
+    <div class="pay-row ${dev>0?'pending-row':'paid-row'}"><span class="pay-label">${dev>0?'🔴 Pendente':'✅ Quitado'}</span><span class="pay-val">${dev>0?fmtMoney(dev):'—'}</span></div>
+    <div class="pay-row"><span class="pay-label">📊 Total</span><span class="pay-val">${fmtMoney(total)}</span></div>
+  </div>`
+}
+
+// ═══════════════════════════════════════
+//  FILES
+// ═══════════════════════════════════════
 const fmtSz=b=>b<1048576?`${(b/1024).toFixed(1)} KB`:`${(b/1048576).toFixed(1)} MB`
 const fIcon=t=>t.startsWith('image')?'🖼️':t.includes('pdf')?'📄':'📁'
 
@@ -565,16 +715,31 @@ function setupDZ(){
 }
 function handleFiles(e){Array.from(e.target.files).filter(f=>f.size<=10485760).forEach(f=>pendingFiles.push(f));e.target.value='';renderFiles()}
 
-// ═══ SAVE ═══
+// ═══════════════════════════════════════
+//  SAVE
+// ═══════════════════════════════════════
 async function save(){
   const name=document.getElementById('fN')?.value.trim()
   if(!name){toast('Nome é obrigatório','error');return}
-  const sv=document.getElementById('fS')?.value,ev=document.getElementById('fE')?.value
+
+  const sv=document.getElementById('fS')?.value||null
+  const ev=document.getElementById('fE')?.value||null
   const over=!!(sv&&ev&&isOvernight(sv,ev))
+
   if(sv&&ev){
     const conf=checkConflict(fmtDate(selDate),sv,ev,over,selReservation?.id)
     if(conf.length){toast('Conflito de horário com: '+conf[0].client_name,'error');return}
   }
+
+  // Validate payment: paid can't exceed total
+  const vtRaw=document.getElementById('fVT')?.value
+  const vpRaw=document.getElementById('fVP')?.value
+  const vt=vtRaw!==''&&vtRaw!=null?parseFloat(vtRaw):null
+  const vp=vpRaw!==''&&vpRaw!=null?parseFloat(vpRaw):null
+  if(vt!=null&&vt<0){toast('Valor total não pode ser negativo','error');return}
+  if(vp!=null&&vp<0){toast('Valor pago não pode ser negativo','error');return}
+  if(vt!=null&&vp!=null&&vp>vt){toast('Valor pago não pode ser maior que o total','error');return}
+
   const btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Salvando...'
   try{
     let uploaded=[...existingFiles]
@@ -590,26 +755,40 @@ async function save(){
       document.getElementById('progBar').style.width='100%'
       setTimeout(()=>document.getElementById('prog').style.display='none',400)
     }
+
     const payload={
-      event_date:fmtDate(selDate),
-      client_name:name,
-      client_phone:document.getElementById('fPh')?.value.trim()||'',
-      event_type:document.getElementById('fTy')?.value||'',
-      notes:document.getElementById('fNo')?.value.trim()||'',
-      status:curStatus,
-      start_time:sv||null,end_time:ev||null,ends_next_day:over,files:uploaded
+      event_date: fmtDate(selDate),
+      client_name: name,
+      client_phone: document.getElementById('fPh')?.value.trim()||'',
+      event_type: document.getElementById('fTy')?.value||'',
+      notes: document.getElementById('fNo')?.value.trim()||'',
+      status: curStatus,
+      start_time: sv,
+      end_time: ev,
+      ends_next_day: over,
+      has_assador: document.getElementById('chkAssador')?.checked||false,
+      has_suite: document.getElementById('chkSuite')?.checked||false,
+      valor_total: vt,
+      valor_pago: vp,
+      files: uploaded
     }
+
     let err
     if(selReservation){({error:err}=await sb.from('reservations').update(payload).eq('id',selReservation.id))}
     else{({error:err}=await sb.from('reservations').insert([payload]))}
     if(err)throw err
+
     toast(selReservation?'Atualizado! ✓':'Reserva criada! ✓','success')
-    closeModal(); await loadReservations()
-  }catch(e){toast('Erro: '+e.message,'error');btn.disabled=false;btn.textContent=selReservation?'Salvar Alterações':'Criar Reserva'}
+    closeModal();await loadReservations()
+  }catch(e){
+    toast('Erro: '+e.message,'error')
+    const b=document.getElementById('saveBtn')
+    if(b){b.disabled=false;b.textContent=selReservation?'Salvar Alterações':'Criar Reserva'}
+  }
 }
 
 function confirmDel(){
-  document.getElementById('delSec').innerHTML=`<div class="confirm-box"><p>Confirmar exclusão?</p>
+  document.getElementById('delSec').innerHTML=`<div class="confirm-box"><p>Confirmar exclusão desta reserva?</p>
     <div class="confirm-row">
       <button class="btn btn-ghost" onclick="buildForm()">Cancelar</button>
       <button class="btn" style="background:var(--red);color:#fff" onclick="doDelete()">Excluir</button>
@@ -619,15 +798,17 @@ async function doDelete(){
   if(!selReservation)return
   const{error}=await sb.from('reservations').delete().eq('id',selReservation.id)
   if(error){toast('Erro: '+error.message,'error');return}
-  toast('Excluído','success'); closeModal(); await loadReservations()
+  toast('Excluído','success');closeModal();await loadReservations()
 }
 
-// ═══ TOAST ═══
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
 let _t
 function toast(msg,type=''){
   clearTimeout(_t);document.querySelector('.toast')?.remove()
   const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg
-  document.body.appendChild(el);_t=setTimeout(()=>el.remove(),3000)
+  document.body.appendChild(el);_t=setTimeout(()=>el.remove(),3500)
 }
 </script>
 </body>
