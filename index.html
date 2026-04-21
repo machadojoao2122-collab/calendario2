@@ -264,12 +264,69 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--elevated);border:1px solid var(--border-strong);color:var(--text);padding:10px 20px;border-radius:99px;font-size:13px;z-index:200;animation:fadeIn .25s ease;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .toast.success{border-color:rgba(52,211,153,0.4);color:var(--green)}.toast.error{border-color:rgba(239,68,68,0.4);color:var(--red)}
 
+/* ═══ FILES PAGE ═══ */
+.files-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.files-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.files-search{flex:1;min-width:160px;background:var(--elevated);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.files-search:focus{border-color:var(--gold)}
+.files-search::placeholder{color:var(--text-muted)}
+.ftype-btn{padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--elevated);color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.ftype-btn:hover{color:var(--text)}
+.ftype-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light)}
+
+/* Upload zone (files page) */
+.page-dropzone{border:2px dashed var(--border-strong);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px;position:relative}
+.page-dropzone:hover,.page-dropzone.drag-over{border-color:var(--gold);background:var(--gold-dim)}
+.page-dropzone-inner{pointer-events:none}
+.pdz-icon{font-size:32px;margin-bottom:8px}
+.pdz-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px}
+.pdz-sub{font-size:12px;color:var(--text-secondary)}
+.pdz-select{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.pdz-select select{background:var(--elevated);border:1px solid var(--border-strong);color:var(--text);border-radius:8px;padding:7px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;max-width:240px}
+.pdz-select select:focus{border-color:var(--gold)}
+.pdz-select select option{background:#1a1a1a}
+.pdz-upload-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:7px 18px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .18s}
+.pdz-upload-btn:hover{background:var(--gold-light)}
+.pdz-upload-btn:disabled{opacity:.5;cursor:not-allowed}
+.pdz-prog{margin-top:10px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;display:none}
+.pdz-prog-bar{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+
+/* Group by reservation */
+.fgroup{margin-bottom:28px}
+.fgroup-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:background .15s}
+.fgroup-header:hover{background:var(--elevated)}
+.fgroup-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.fgroup-name{font-size:14px;font-weight:500;flex:1}
+.fgroup-meta{font-size:12px;color:var(--text-secondary)}
+.fgroup-date{font-size:12px;color:var(--text-muted);font-family:'Cormorant Garamond',serif;font-size:15px}
+.fgroup-count{font-size:11px;color:var(--text-muted);padding:2px 8px;background:var(--elevated);border-radius:99px;border:1px solid var(--border)}
+.fgroup-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+
+/* File card */
+.fcard{background:var(--elevated);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .15s;display:flex;flex-direction:column}
+.fcard:hover{border-color:var(--border-strong);transform:translateY(-1px)}
+.fcard-preview{height:110px;background:var(--hover);display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;overflow:hidden;flex-shrink:0}
+.fcard-preview img{width:100%;height:100%;object-fit:cover}
+.fcard-body{padding:10px 12px;flex:1;display:flex;flex-direction:column;gap:6px}
+.fcard-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.fcard-size{font-size:11px;color:var(--text-muted)}
+.fcard-actions{display:flex;gap:5px;margin-top:auto}
+.fcard-btn{flex:1;padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px}
+.fcard-btn:hover{color:var(--text);border-color:var(--border-strong)}
+.fcard-btn.dl:hover{color:var(--gold);border-color:var(--gold-dim)}
+.fcard-btn.del-f:hover{color:var(--red);border-color:rgba(239,68,68,0.3)}
+
+.empty-files{text-align:center;padding:56px 20px;color:var(--text-muted);font-size:14px}
+.empty-files-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+
 @media(max-width:540px){
   .stats-grid{grid-template-columns:1fr 1fr}.fin-hero{grid-template-columns:1fr}.fin-row{grid-template-columns:1fr 1fr}
   .fin-table-head,.fin-table-row{grid-template-columns:1.2fr 1fr 1fr;font-size:12px}
   .fin-table-head .fin-cell:nth-child(4),.fin-table-head .fin-cell:nth-child(5),
   .fin-table-row .fin-cell:nth-child(4),.fin-table-row .fin-cell:nth-child(5){display:none}
   .nav-tab{padding:6px 9px;font-size:12px}
+  .files-stats{grid-template-columns:1fr 1fr}
+  .fgroup-body{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 }
 </style>
 </head>
@@ -291,6 +348,7 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
       <button class="nav-tab active" onclick="showPage('calendar')">📅 Calendário</button>
       <button class="nav-tab" onclick="showPage('reservations')">📋 Reservas</button>
       <button class="nav-tab" onclick="showPage('finance')">💰 Financeiro</button>
+      <button class="nav-tab" onclick="showPage('files')">📁 Arquivos</button>
     </div>
     <button class="refresh-btn" onclick="loadAll()" id="refreshBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -396,6 +454,40 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
   </div>
 </div>
 
+<!-- ══ PAGE: ARQUIVOS ══ -->
+<div class="page" id="page-files">
+  <div class="files-stats">
+    <div class="stat-card"><div class="stat-label">📁 Total de arquivos</div><div class="stat-value" id="fsStat1" style="color:var(--gold)">—</div></div>
+    <div class="stat-card"><div class="stat-label">🖼 Imagens</div><div class="stat-value" id="fsStat2" style="color:var(--blue)">—</div></div>
+    <div class="stat-card"><div class="stat-label">📄 Documentos</div><div class="stat-value" id="fsStat3" style="color:var(--orange)">—</div></div>
+    <div class="stat-card"><div class="stat-label">💾 Tamanho total</div><div class="stat-value" id="fsStat4" style="color:var(--green)">—</div></div>
+  </div>
+  <div class="page-dropzone" id="pageDz" onclick="pageDzClick(event)">
+    <div class="page-dropzone-inner">
+      <div class="pdz-icon">☁️</div>
+      <div class="pdz-title">Fazer upload de arquivo</div>
+      <div class="pdz-sub">Arraste ou clique na área para selecionar — JPG, PNG, PDF, DOC — máx. 10MB</div>
+      <div class="pdz-select" onclick="event.stopPropagation()">
+        <select id="pageDzReservation">
+          <option value="">Selecione a reserva...</option>
+        </select>
+        <button class="pdz-upload-btn" id="pageDzBtn" onclick="event.stopPropagation();pageUpload()">Enviar arquivo</button>
+      </div>
+    </div>
+    <div class="pdz-prog" id="pageDzProg"><div class="pdz-prog-bar" id="pageDzBar" style="width:0%"></div></div>
+  </div>
+  <input type="file" id="pageFileInput" multiple accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="pageFilesSelected(event)"/>
+  <div id="pageFilesPending" style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px"></div>
+  <div class="files-toolbar">
+    <input class="files-search" type="text" id="filesSearch" placeholder="🔍 Buscar por nome ou cliente..." oninput="renderFilesPage()"/>
+    <button class="ftype-btn active" onclick="setFileType('all',this)">Todos</button>
+    <button class="ftype-btn" onclick="setFileType('image',this)">🖼 Imagens</button>
+    <button class="ftype-btn" onclick="setFileType('pdf',this)">📄 PDFs</button>
+    <button class="ftype-btn" onclick="setFileType('doc',this)">📝 Docs</button>
+  </div>
+  <div id="filesContainer"></div>
+</div>
+
 </main>
 
 <!-- MODAL -->
@@ -435,6 +527,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('expDate').valueAsDate=new Date()
   document.getElementById('finYear').textContent=new Date().getFullYear()
   sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)
+  setupPageDz()
   loadAll()
 })
 
@@ -445,10 +538,11 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'))
   document.getElementById('page-'+name).classList.add('active')
-  const tabs={calendar:0,reservations:1,finance:2}
+  const tabs={calendar:0,reservations:1,finance:2,files:3}
   document.querySelectorAll('.nav-tab')[tabs[name]].classList.add('active')
   if(name==='reservations')renderAllReservations()
   if(name==='finance')renderFinance()
+  if(name==='files')renderFilesPage()
 }
 
 // ═══════════════════════════════════════════
@@ -469,6 +563,7 @@ async function loadAll(){
     // re-render active pages
     if(document.getElementById('page-reservations').classList.contains('active'))renderAllReservations()
     if(document.getElementById('page-finance').classList.contains('active'))renderFinance()
+    if(document.getElementById('page-files').classList.contains('active'))renderFilesPage()
   }catch(e){toast('Erro: '+e.message,'error')}
   finally{document.getElementById('refreshBtn').classList.remove('spinning')}
 }
@@ -972,6 +1067,208 @@ async function doDelete(){
   if(error){toast('Erro: '+error.message,'error');return}
   toast('Excluído','success');closeModal();await loadAll()
 }
+
+// ═══════════════════════════════════════════
+//  FILES PAGE
+// ═══════════════════════════════════════════
+let pageFilesQueue=[] // files waiting to upload
+let curFileType='all'
+
+// Collect all files from all reservations
+function getAllFiles(){
+  const all=[]
+  for(const r of reservations){
+    const files=Array.isArray(r.files)?r.files:[]
+    for(const f of files){
+      if(f&&f.url&&f.name)all.push({...f,reservation:r})
+    }
+  }
+  return all
+}
+
+function setFileType(type,btn){
+  curFileType=type
+  document.querySelectorAll('.ftype-btn').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  renderFilesPage()
+}
+
+function renderFilesPage(){
+  const allFiles=getAllFiles()
+
+  // Stats
+  const imgs=allFiles.filter(f=>f.type&&f.type.startsWith('image'))
+  const docs=allFiles.filter(f=>!f.type||!f.type.startsWith('image'))
+  const totalSize=allFiles.reduce((s,f)=>s+(f.size||0),0)
+  document.getElementById('fsStat1').textContent=allFiles.length
+  document.getElementById('fsStat2').textContent=imgs.length
+  document.getElementById('fsStat3').textContent=docs.length
+  document.getElementById('fsStat4').textContent=fmtSzLong(totalSize)
+
+  // Populate reservation dropdown
+  const sel=document.getElementById('pageDzReservation')
+  const prev=sel.value
+  sel.innerHTML='<option value="">Selecione a reserva...</option>'
+  +[...reservations].sort((a,b)=>b.event_date?.localeCompare(a.event_date||'')||0)
+    .map(r=>`<option value="${r.id}">${esc(r.client_name)} — ${r.event_date?new Date(r.event_date+'T00:00:00').toLocaleDateString('pt-BR'):''}</option>`)
+    .join('')
+  if(prev)sel.value=prev
+
+  // Filter
+  const q=(document.getElementById('filesSearch')?.value||'').toLowerCase()
+  let filtered=allFiles
+  if(curFileType==='image')filtered=filtered.filter(f=>f.type&&f.type.startsWith('image'))
+  else if(curFileType==='pdf')filtered=filtered.filter(f=>f.type&&f.type.includes('pdf'))
+  else if(curFileType==='doc')filtered=filtered.filter(f=>f.type&&(f.type.includes('word')||f.name?.match(/\.docx?$/i)))
+  if(q)filtered=filtered.filter(f=>f.name.toLowerCase().includes(q)||f.reservation.client_name.toLowerCase().includes(q))
+
+  const con=document.getElementById('filesContainer')
+  if(!filtered.length){
+    con.innerHTML=`<div class="empty-files"><div class="empty-files-icon">📂</div><div>${allFiles.length?'Nenhum arquivo encontrado para esse filtro':'Nenhum arquivo anexado ainda. Faça upload acima ou anexe na reserva.'}</div></div>`
+    return
+  }
+
+  // Group by reservation
+  const groups={}
+  for(const f of filtered){
+    const rid=f.reservation.id
+    if(!groups[rid])groups[rid]={r:f.reservation,files:[]}
+    groups[rid].files.push(f)
+  }
+
+  // Sort groups: most recent event date first
+  const sorted=Object.values(groups).sort((a,b)=>(b.r.event_date||'').localeCompare(a.r.event_date||''))
+
+  con.innerHTML=sorted.map(g=>{
+    const r=g.r
+    const dot=r.status==='confirmed'?'#fbbf24':r.status==='pending'?'var(--blue)':'#f87171'
+    const dStr=r.event_date?new Date(r.event_date+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}):''
+    const cards=g.files.map((f,idx)=>fileCardHTML(f,g.r)).join('')
+    return `<div class="fgroup">
+      <div class="fgroup-header" onclick="selDate=new Date('${r.event_date}T00:00:00');openForm(reservations.find(x=>x.id==='${r.id}'))">
+        <div class="fgroup-dot" style="background:${dot}"></div>
+        <div class="fgroup-name">${esc(r.client_name)}</div>
+        <div class="fgroup-meta">${esc(r.event_type||'Evento')}</div>
+        <div class="fgroup-date">${dStr}</div>
+        <div class="fgroup-count">${g.files.length} arquivo${g.files.length!==1?'s':''}</div>
+      </div>
+      <div class="fgroup-body">${cards}</div>
+    </div>`
+  }).join('')
+}
+
+function fileCardHTML(f,r){
+  const isImg=f.type&&f.type.startsWith('image')
+  const isPdf=f.type&&f.type.includes('pdf')
+  const preview=isImg
+    ?`<img src="${esc(f.url)}" alt="${esc(f.name)}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">`
+    :isPdf?'📄':f.name?.match(/\.docx?$/i)?'📝':'📁'
+  // encode reservation id and file URL safely for onclick
+  const rid=esc(r.id),furl=esc(f.url)
+  return `<div class="fcard">
+    <div class="fcard-preview">${isImg?preview:preview}</div>
+    <div class="fcard-body">
+      <div class="fcard-name" title="${esc(f.name)}">${esc(f.name)}</div>
+      <div class="fcard-size">${fmtSz(f.size||0)}</div>
+      <div class="fcard-actions">
+        <a class="fcard-btn dl" href="${esc(f.url)}" download="${esc(f.name)}" target="_blank">⬇ Baixar</a>
+        <a class="fcard-btn" href="${esc(f.url)}" target="_blank" rel="noopener">🔗 Abrir</a>
+        <button class="fcard-btn del-f" onclick="deleteFileFromRes('${rid}','${furl}')">🗑</button>
+      </div>
+    </div>
+  </div>`
+}
+
+async function deleteFileFromRes(reservationId,fileUrl){
+  if(!confirm('Remover este arquivo da reserva?'))return
+  const r=reservations.find(x=>x.id===reservationId)
+  if(!r)return
+  const newFiles=(r.files||[]).filter(f=>f.url!==fileUrl)
+  const{error}=await sb.from('reservations').update({files:newFiles}).eq('id',reservationId)
+  if(error){toast('Erro: '+error.message,'error');return}
+  toast('Arquivo removido ✓','success')
+  await loadAll()
+}
+
+// ── PAGE UPLOAD ──
+function pageDzClick(e){
+  if(e.target.tagName==='SELECT'||e.target.tagName==='BUTTON'||e.target.tagName==='OPTION')return
+  document.getElementById('pageFileInput').click()
+}
+
+function pageFilesSelected(e){
+  Array.from(e.target.files).filter(f=>f.size<=10485760).forEach(f=>pageFilesQueue.push(f))
+  e.target.value=''
+  renderPagePending()
+}
+
+function renderPagePending(){
+  const el=document.getElementById('pageFilesPending')
+  if(!pageFilesQueue.length){el.innerHTML='';return}
+  el.innerHTML=pageFilesQueue.map((f,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);border-radius:9px">
+      <div style="font-size:13px">${f.type.startsWith('image')?'🖼️':f.type.includes('pdf')?'📄':'📁'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:var(--gold-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${fmtSz(f.size)}</div>
+      </div>
+      <button onclick="pageFilesQueue.splice(${i},1);renderPagePending()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:4px">✕</button>
+    </div>`).join('')
+}
+
+async function pageUpload(){
+  const rid=document.getElementById('pageDzReservation').value
+  if(!rid){toast('Selecione a reserva primeiro','error');return}
+  if(!pageFilesQueue.length){toast('Selecione pelo menos um arquivo','error');return}
+  const r=reservations.find(x=>x.id===rid)
+  if(!r){toast('Reserva não encontrada','error');return}
+
+  const btn=document.getElementById('pageDzBtn')
+  const prog=document.getElementById('pageDzProg'),bar=document.getElementById('pageDzBar')
+  btn.disabled=true;prog.style.display='block';bar.style.width='0%'
+
+  try{
+    const uploaded=[...(r.files||[])]
+    for(let i=0;i<pageFilesQueue.length;i++){
+      bar.style.width=`${(i/pageFilesQueue.length)*100}%`
+      btn.textContent=`Enviando ${i+1}/${pageFilesQueue.length}...`
+      const f=pageFilesQueue[i]
+      const path=`${rid}/${Date.now()}-${f.name}`
+      const{error:ue}=await sb.storage.from('reservation-files').upload(path,f,{contentType:f.type})
+      if(!ue){
+        const{data:ud}=sb.storage.from('reservation-files').getPublicUrl(path)
+        uploaded.push({name:f.name,url:ud.publicUrl,type:f.type,size:f.size})
+      }else{
+        toast(`Erro no arquivo ${f.name}: ${ue.message}`,'error')
+      }
+    }
+    bar.style.width='100%'
+    const{error}=await sb.from('reservations').update({files:uploaded}).eq('id',rid)
+    if(error)throw error
+    toast(`${pageFilesQueue.length} arquivo${pageFilesQueue.length!==1?'s':''} enviado${pageFilesQueue.length!==1?'s':''}! ✓`,'success')
+    pageFilesQueue=[];renderPagePending()
+    await loadAll()
+  }catch(e){toast('Erro: '+e.message,'error')}
+  finally{
+    btn.disabled=false;btn.textContent='Enviar arquivo'
+    setTimeout(()=>{prog.style.display='none';bar.style.width='0%'},600)
+  }
+}
+
+// Page dropzone drag-and-drop — init after DOM ready
+function setupPageDz(){
+  const dz=document.getElementById('pageDz')
+  if(!dz)return
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')})
+  dz.addEventListener('dragleave',e=>{if(!dz.contains(e.relatedTarget))dz.classList.remove('drag-over')})
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('drag-over')
+    Array.from(e.dataTransfer.files).filter(f=>f.size<=10485760).forEach(f=>pageFilesQueue.push(f))
+    renderPagePending()
+  })
+}
+
+function fmtSzLong(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+' KB';if(b<1073741824)return (b/1048576).toFixed(1)+' MB';return (b/1073741824).toFixed(2)+' GB'}
 
 // TOAST
 let _t
