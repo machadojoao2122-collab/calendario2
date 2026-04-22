@@ -100,6 +100,7 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
 .badge-debt{background:var(--red-dim);color:#f87171}
 .badge-paid{background:var(--green-dim);color:var(--green)}
 .badge-contract{background:var(--green-dim);color:var(--green)}
+.badge-sent{background:var(--purple-dim);color:var(--purple)}
 .badge-no-contract{background:rgba(255,255,255,0.05);color:var(--text-muted)}
 
 /* MONTH GROUP */
@@ -462,22 +463,27 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
     <div class="stat-card"><div class="stat-label">📄 Documentos</div><div class="stat-value" id="fsStat3" style="color:var(--orange)">—</div></div>
     <div class="stat-card"><div class="stat-label">💾 Tamanho total</div><div class="stat-value" id="fsStat4" style="color:var(--green)">—</div></div>
   </div>
-  <div class="page-dropzone" id="pageDz" onclick="pageDzClick(event)">
-    <div class="page-dropzone-inner">
-      <div class="pdz-icon">☁️</div>
-      <div class="pdz-title">Fazer upload de arquivo</div>
-      <div class="pdz-sub">Arraste ou clique na área para selecionar — JPG, PNG, PDF, DOC — máx. 10MB</div>
-      <div class="pdz-select" onclick="event.stopPropagation()">
-        <select id="pageDzReservation">
-          <option value="">Selecione a reserva...</option>
-        </select>
-        <button class="pdz-upload-btn" id="pageDzBtn" onclick="event.stopPropagation();pageUpload()">Enviar arquivo</button>
-      </div>
-    </div>
+  <!-- Dropzone visual (apenas drag/click para selecionar arquivos) -->
+  <div class="page-dropzone" id="pageDz" onclick="document.getElementById('pageFileInput').click()">
+    <div class="pdz-icon">☁️</div>
+    <div class="pdz-title">Arraste arquivos aqui ou clique para selecionar</div>
+    <div class="pdz-sub">JPG, PNG, PDF, DOC — máx. 10MB por arquivo</div>
     <div class="pdz-prog" id="pageDzProg"><div class="pdz-prog-bar" id="pageDzBar" style="width:0%"></div></div>
   </div>
   <input type="file" id="pageFileInput" multiple accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="pageFilesSelected(event)"/>
-  <div id="pageFilesPending" style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px"></div>
+
+  <!-- Fila de arquivos selecionados + controles de envio -->
+  <div id="pageFilesPending" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px"></div>
+  <div id="pageUploadControls" style="display:none;background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:18px">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px">Vincular arquivos à reserva</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select id="pageDzReservation" style="flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;appearance:none">
+        <option value="">Selecione a reserva...</option>
+      </select>
+      <button class="pdz-upload-btn" id="pageDzBtn" onclick="pageUpload()">⬆ Enviar arquivos</button>
+      <button onclick="pageFilesQueue=[];renderPagePending()" style="background:none;border:1px solid var(--border);color:var(--text-secondary);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">Cancelar</button>
+    </div>
+  </div>
   <div class="files-toolbar">
     <input class="files-search" type="text" id="filesSearch" placeholder="🔍 Buscar por nome ou cliente..." oninput="renderFilesPage()"/>
     <button class="ftype-btn active" onclick="setFileType('all',this)">Todos</button>
@@ -563,7 +569,8 @@ async function loadAll(){
     // re-render active pages
     if(document.getElementById('page-reservations').classList.contains('active'))renderAllReservations()
     if(document.getElementById('page-finance').classList.contains('active'))renderFinance()
-    if(document.getElementById('page-files').classList.contains('active'))renderFilesPage()
+    // always update files page stats (even if not visible) so navigation is instant
+    renderFilesPage()
   }catch(e){toast('Erro: '+e.message,'error')}
   finally{document.getElementById('refreshBtn').classList.remove('spinning')}
 }
@@ -745,7 +752,7 @@ function resCardHTML(r){
     <div class="res-badges">
       <span class="badge ${statusBadge}">${statusLabel}</span>
       ${svcs.map(s=>`<span class="badge badge-service">${s}</span>`).join('')}
-      ${r.contrato_assinado?`<span class="badge badge-contract">📄 Contrato</span>`:`<span class="badge badge-no-contract">Sem contrato</span>`}
+      ${r.contrato_assinado?`<span class="badge badge-contract">📄 Assinado</span>`:r.contrato_enviado?`<span class="badge badge-sent">📨 Enviado</span>`:`<span class="badge badge-no-contract">Sem contrato</span>`}
       ${total>0?`<span class="badge ${dev>0?'badge-debt':'badge-paid'}">${dev>0?'Falta '+fmtShort(dev):'✓ Pago'}</span>`:''}
     </div>
   </div>`
@@ -929,6 +936,10 @@ function buildForm(){
           <input type="checkbox" id="chkContrato" ${r?.contrato_assinado?'checked':''} ${dis?'disabled':''}/>
           <label for="chkContrato">📄 Contrato Assinado</label>
         </div>
+        <div class="check-wrap purple">
+          <input type="checkbox" id="chkContratoEnv" ${r?.contrato_enviado?'checked':''} ${dis?'disabled':''}/>
+          <label for="chkContratoEnv">📨 Contrato Enviado</label>
+        </div>
       </div>
     </div>
 
@@ -1042,6 +1053,7 @@ async function save(){
       has_assador:document.getElementById('chkAssador')?.checked||false,
       has_suite:document.getElementById('chkSuite')?.checked||false,
       contrato_assinado:document.getElementById('chkContrato')?.checked||false,
+      contrato_enviado:document.getElementById('chkContratoEnv')?.checked||false,
       valor_total:vt,valor_pago:vp,files:uploaded
     }
     let err
@@ -1157,21 +1169,43 @@ function renderFilesPage(){
   }).join('')
 }
 
+// ── Download real via blob (contorna bloqueio cross-origin do atributo download) ──
+async function downloadFile(url, name){
+  try{
+    toast('Preparando download...','')
+    const res=await fetch(url)
+    if(!res.ok)throw new Error('Erro ao buscar arquivo')
+    const blob=await res.blob()
+    const a=document.createElement('a')
+    a.href=URL.createObjectURL(blob)
+    a.download=name
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)
+    toast('Download iniciado ✓','success')
+  }catch(e){
+    // Fallback: abrir em nova aba
+    window.open(url,'_blank')
+  }
+}
+
 function fileCardHTML(f,r){
   const isImg=f.type&&f.type.startsWith('image')
   const isPdf=f.type&&f.type.includes('pdf')
+  const isDoc=f.name?.match(/\.docx?$/i)
   const preview=isImg
     ?`<img src="${esc(f.url)}" alt="${esc(f.name)}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">`
-    :isPdf?'📄':f.name?.match(/\.docx?$/i)?'📝':'📁'
-  // encode reservation id and file URL safely for onclick
-  const rid=esc(r.id),furl=esc(f.url)
+    :isPdf?'📄':isDoc?'📝':'📁'
+  const rid=r.id.replace(/'/g,"\\'")
+  const furl=f.url.replace(/'/g,"\\'")
+  const fname=f.name.replace(/'/g,"\\'")
   return `<div class="fcard">
-    <div class="fcard-preview">${isImg?preview:preview}</div>
+    <div class="fcard-preview">${preview}</div>
     <div class="fcard-body">
       <div class="fcard-name" title="${esc(f.name)}">${esc(f.name)}</div>
-      <div class="fcard-size">${fmtSz(f.size||0)}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${esc(r.client_name)} · ${fmtSz(f.size||0)}</div>
       <div class="fcard-actions">
-        <a class="fcard-btn dl" href="${esc(f.url)}" download="${esc(f.name)}" target="_blank">⬇ Baixar</a>
+        <button class="fcard-btn dl" onclick="downloadFile('${furl}','${fname}')">⬇ Baixar</button>
         <a class="fcard-btn" href="${esc(f.url)}" target="_blank" rel="noopener">🔗 Abrir</a>
         <button class="fcard-btn del-f" onclick="deleteFileFromRes('${rid}','${furl}')">🗑</button>
       </div>
@@ -1191,11 +1225,6 @@ async function deleteFileFromRes(reservationId,fileUrl){
 }
 
 // ── PAGE UPLOAD ──
-function pageDzClick(e){
-  if(e.target.tagName==='SELECT'||e.target.tagName==='BUTTON'||e.target.tagName==='OPTION')return
-  document.getElementById('pageFileInput').click()
-}
-
 function pageFilesSelected(e){
   Array.from(e.target.files).filter(f=>f.size<=10485760).forEach(f=>pageFilesQueue.push(f))
   e.target.value=''
@@ -1204,15 +1233,38 @@ function pageFilesSelected(e){
 
 function renderPagePending(){
   const el=document.getElementById('pageFilesPending')
-  if(!pageFilesQueue.length){el.innerHTML='';return}
+  const ctrl=document.getElementById('pageUploadControls')
+
+  if(!pageFilesQueue.length){
+    el.innerHTML=''
+    if(ctrl)ctrl.style.display='none'
+    return
+  }
+
+  // Show controls and populate the reservation select (only when files are queued)
+  if(ctrl){
+    ctrl.style.display='block'
+    const sel=document.getElementById('pageDzReservation')
+    const prev=sel.value
+    sel.innerHTML='<option value="">Selecione a reserva...</option>'
+    +[...reservations]
+      .filter(r=>r.status!=='cancelled')
+      .sort((a,b)=>(b.event_date||'').localeCompare(a.event_date||''))
+      .map(r=>{
+        const d=r.event_date?new Date(r.event_date+'T00:00:00').toLocaleDateString('pt-BR'):'sem data'
+        return `<option value="${r.id}">${esc(r.client_name)} — ${d}</option>`
+      }).join('')
+    if(prev)sel.value=prev
+  }
+
   el.innerHTML=pageFilesQueue.map((f,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);border-radius:9px">
-      <div style="font-size:13px">${f.type.startsWith('image')?'🖼️':f.type.includes('pdf')?'📄':'📁'}</div>
+      <div style="font-size:14px">${(f.type||'').startsWith('image')?'🖼️':(f.type||'').includes('pdf')?'📄':'📁'}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:500;color:var(--gold-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</div>
         <div style="font-size:11px;color:var(--text-muted)">${fmtSz(f.size)}</div>
       </div>
-      <button onclick="pageFilesQueue.splice(${i},1);renderPagePending()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:4px">✕</button>
+      <button onclick="pageFilesQueue.splice(${i},1);renderPagePending()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;line-height:1">✕</button>
     </div>`).join('')
 }
 
