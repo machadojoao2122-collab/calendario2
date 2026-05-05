@@ -76,6 +76,27 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
 .legend-dot{width:9px;height:9px;border-radius:50%}
 
+/* Day event pills */
+.day-event{
+  font-size:9.5px;font-weight:500;line-height:1.25;
+  padding:2px 5px 2px 4px;border-radius:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:2px;flex-shrink:0;
+  border-left:2px solid transparent;
+}
+.day-event.ev-confirmed{background:rgba(201,168,76,0.22);color:#f0c84a;border-left-color:rgba(201,168,76,0.7)}
+.day-event.ev-pending{background:rgba(96,165,250,0.2);color:#93c5fd;border-left-color:rgba(96,165,250,0.6)}
+.day-event.ev-cancelled{background:rgba(239,68,68,0.1);color:#f87171;border-left-color:rgba(239,68,68,0.35);text-decoration:line-through;opacity:.7}
+/* Spill = overnight event arriving from prev day */
+.day-event.day-spill{opacity:.65;font-style:italic}
+.day-event.day-spill.ev-confirmed{background:rgba(201,168,76,0.1);border-left-color:rgba(201,168,76,0.3)}
+.day-event.day-spill.ev-pending{background:rgba(96,165,250,0.09);border-left-color:rgba(96,165,250,0.3)}
+.day-num{font-size:14px;font-weight:500;line-height:1;color:var(--text-secondary);margin-bottom:4px;flex-shrink:0;padding:0 2px}
+.cal-day.has-confirmed .day-num{color:#e6c97a}
+.cal-day.has-pending .day-num{color:#93c5fd}
+.cal-day.today .day-num{color:var(--gold-light);font-weight:700}
+.cal-day.has-spill .day-num{color:var(--text-muted)}
+
 /* SECTION TITLE */
 .section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-secondary);font-weight:500;margin:28px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:6px}
 .section-title span{display:flex;align-items:center;gap:6px}
@@ -388,6 +409,7 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
       <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Pendente</div>
       <div class="legend-item"><div class="legend-dot" style="background:#f87171;opacity:.5"></div>Cancelado</div>
       <div class="legend-item"><div class="legend-dot" style="background:transparent;border:2px solid var(--gold)"></div>Hoje</div>
+      <div class="legend-item" style="font-style:italic;opacity:.7"><div class="legend-dot" style="background:rgba(201,168,76,0.35)"></div>↩ Chegando da noite anterior</div>
     </div>
   </div>
   <div id="upcomingSection" style="display:none">
@@ -599,7 +621,25 @@ function checkConflict(ds,ns,ne,nOver,xId){
   return res
 }
 function overlap(s1,e1,o1,s2,e2,o2){let a1=toMins(s1),b1=toMins(e1)+(o1?1440:0),a2=toMins(s2),b2=toMins(e2)+(o2?1440:0);if(b1<=a1)b1=a1+1;if(b2<=a2)b2=a2+1;return a1<b2&&b1>a2}
-function getEvents(ds,all=false){const res=[];for(const r of reservations){if(!all&&r.status==='cancelled')continue;if(r.event_date===ds){res.push(r);continue}if(r.event_date===dateOffset(ds,-1)&&r.ends_next_day)res.push(r)}return res}
+// Eventos que COMEÇAM neste dia
+function getOwnEvents(ds, all=false){
+  return reservations.filter(r=>{
+    if(!all && r.status==='cancelled') return false
+    return r.event_date===ds
+  })
+}
+// Eventos overnight que CHEGAM do dia anterior (apenas para exibição)
+function getSpillEvents(ds, all=false){
+  const prev=dateOffset(ds,-1)
+  return reservations.filter(r=>{
+    if(!all && r.status==='cancelled') return false
+    return r.event_date===prev && r.ends_next_day
+  })
+}
+// Todos os eventos relevantes para o dia (próprios + spill) — usado para display
+function getEvents(ds, all=false){
+  return [...getOwnEvents(ds,all), ...getSpillEvents(ds,all)]
+}
 function dateOffset(ds,d){const dt=new Date(ds+'T00:00:00');dt.setDate(dt.getDate()+d);return fmtDate(dt)}
 function fmtDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -617,40 +657,81 @@ function renderCalendar(){
   const today=new Date();today.setHours(0,0,0,0)
   const grid=document.getElementById('calGrid');grid.innerHTML=''
   const total=Math.ceil((first+days)/7)*7
+
   for(let i=0;i<total;i++){
     const div=document.createElement('div');div.className='cal-day'
     let num,other=false,ds
     if(i<first){num=prev-first+i+1;other=true;ds=fmtDate(new Date(Y,M-1,num))}
     else if(i>=first+days){num=i-first-days+1;other=true;ds=fmtDate(new Date(Y,M+1,num))}
     else{num=i-first+1;ds=fmtDate(new Date(Y,M,num))}
+
     const cd=new Date(ds+'T00:00:00')
     const isPast=cd<today,isTod=cd.getTime()===today.getTime()
-    const evs=getEvents(ds),allEvs=getEvents(ds,true)
-    const hasCon=evs.some(r=>r.status==='confirmed'),hasPen=evs.some(r=>r.status==='pending')&&!hasCon
-    if(other)div.classList.add('other-month')
+
+    // Separate own events from spill (overnight arrivals)
+    const own=getOwnEvents(ds,true)
+    const spill=getSpillEvents(ds,true)
+    const ownActive=getOwnEvents(ds,false)  // excluding cancelled
+    const spillActive=getSpillEvents(ds,false)
+
+    const hasCon=ownActive.some(r=>r.status==='confirmed')
+    const hasPen=ownActive.some(r=>r.status==='pending')&&!hasCon
+    const hasSpill=spillActive.length>0
+    const hasAny=own.length>0||spill.length>0
+
+    if(other){ div.classList.add('other-month') }
     else{
-      if(allEvs.length)div.classList.add('has-events')
-      if(hasCon)div.classList.add('has-confirmed');else if(hasPen)div.classList.add('has-pending')
-      if(isTod&&!allEvs.length)div.classList.add('today');else if(isPast&&!allEvs.length)div.classList.add('past')
+      if(hasCon) div.classList.add('has-confirmed')
+      else if(hasPen) div.classList.add('has-pending')
+      else if(hasSpill) div.classList.add('has-spill')  // only spill, no own
+      if(isTod) div.classList.add('today')
+      else if(isPast&&!hasAny) div.classList.add('past')
     }
-    let nc='var(--text)'
-    if(isTod&&!allEvs.length)nc='var(--gold-light)';else if(hasCon)nc='#fbbf24';else if(hasPen)nc='var(--blue)';else if(isPast||other)nc='var(--text-muted)'
-    let dots=''
-    if(allEvs.length){
-      dots=`<div class="day-dots">${allEvs.slice(0,3).map(r=>`<div class="day-dot" style="background:${r.status==='confirmed'?'#fbbf24':r.status==='pending'?'var(--blue)':'#f87171'}"></div>`).join('')}</div>`
-      if(allEvs.length>1)dots+=`<div class="day-count">${allEvs.length}x</div>`
+
+    // ── Build inner HTML ──
+    let html=`<div class="day-num">${num}</div>`
+
+    // Spill indicator (event coming from previous night)
+    if(!other && hasSpill){
+      spillActive.slice(0,1).forEach(r=>{
+        const cls=r.status==='confirmed'?'ev-confirmed':'ev-pending'
+        html+=`<div class="day-event day-spill ${cls}">↩ ${esc(r.client_name.split(' ')[0])}</div>`
+      })
     }
-    div.innerHTML=`<span class="day-num" style="color:${nc}">${num}</span>${dots}`
-    if(!other)div.addEventListener('click',()=>dayClick(cd,ds,allEvs,isPast))
+
+    // Own events
+    if(!other && ownActive.length>0){
+      ownActive.slice(0,2).forEach(r=>{
+        const cls=r.status==='confirmed'?'ev-confirmed':r.status==='pending'?'ev-pending':'ev-cancelled'
+        const arrow=r.ends_next_day?` ↪`:'';
+        html+=`<div class="day-event ${cls}">${esc(r.client_name.split(' ')[0])}${arrow}</div>`
+      })
+      if(ownActive.length>2) html+=`<div class="day-more">+${ownActive.length-2}</div>`
+    }
+
+    div.innerHTML=html
+
+    if(!other){
+      div.addEventListener('click',()=>dayClick(cd,ds,isPast))
+    }
     grid.appendChild(div)
   }
 }
 
-function dayClick(date,ds,evs,past){
+function dayClick(date,ds,past){
   selDate=date
-  if(!evs.length){if(past)return;openForm(null)}
-  else if(evs.length===1)openForm(evs[0])
-  else openPicker(evs)
+  if(past) return
+  const own=getOwnEvents(ds, true) // inclui cancelados para o picker
+  const spill=getSpillEvents(ds, true)
+  // Se só tem spill (evento chegando do dia anterior), pode criar novo normalmente
+  if(own.length===0){
+    openForm(null)
+  } else if(own.length===1 && spill.length===0){
+    openForm(own[0])
+  } else {
+    // Tem eventos próprios — mostra picker com todos + opção de criar novo
+    openPicker(own, spill)
+  }
 }
 
 function renderCalStats(){
@@ -659,7 +740,7 @@ function renderCalStats(){
   const days=new Date(Y,M+1,0).getDate()
   const mr=reservations.filter(r=>{const d=new Date((r.event_date||'')+'T00:00:00');return d.getFullYear()===Y&&d.getMonth()===M})
   let av=0
-  for(let d=1;d<=days;d++){const dt=new Date(Y,M,d);dt.setHours(0,0,0,0);if(dt>=today&&!getEvents(fmtDate(dt)).length)av++}
+  for(let d=1;d<=days;d++){const dt=new Date(Y,M,d);dt.setHours(0,0,0,0);if(dt>=today&&!getOwnEvents(fmtDate(dt)).length)av++}
   document.getElementById('statC').textContent=mr.filter(r=>r.status==='confirmed').length
   document.getElementById('statP').textContent=mr.filter(r=>r.status==='pending').length
   document.getElementById('statA').textContent=av
@@ -860,11 +941,30 @@ function setDateHeader(pre){
   document.getElementById('mPre').textContent=pre
   document.getElementById('mDate').textContent=`${selDate.getDate()} de ${MONTHS_LONG[selDate.getMonth()]}, ${selDate.getFullYear()}`
 }
-function openPicker(evs){
+function openPicker(own, spill=[]){
   document.getElementById('editBtn').style.display='none'
   setDateHeader('Escolha o evento')
+  const spillHTML=spill.length ? `
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px;padding:0 2px">
+      🌙 Chegando do dia anterior
+    </div>
+    ${spill.map(r=>{
+      const ts=r.start_time?`${fmtT(r.start_time)} → ${fmtT(r.end_time)} (+1d)`:''
+      const dot=r.status==='confirmed'?'#fbbf24':'var(--blue)'
+      return `<div class="pick-item" style="opacity:.8;border-style:dashed" onclick="openForm(reservations.find(x=>x.id==='${r.id}'))">
+        <div style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></div>
+        <div class="pick-info"><div class="pick-name">${esc(r.client_name)}</div><div class="pick-type">${esc(r.event_type||'Evento')}</div></div>
+        <div class="pick-time">${ts}</div>
+      </div>`
+    }).join('')}
+    <div style="height:1px;background:var(--border);margin:4px 0 8px"></div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px;padding:0 2px">
+      📅 Neste dia
+    </div>` : ''
+
   document.getElementById('mBody').innerHTML=`<div class="event-picker">
-    ${evs.map(r=>{
+    ${spillHTML}
+    ${own.map(r=>{
       const ts=r.start_time?`${fmtT(r.start_time)}${r.end_time?' → '+fmtT(r.end_time):''}${r.ends_next_day?' (+1d)':''}`:'-'
       const dot=r.status==='confirmed'?'#fbbf24':r.status==='pending'?'var(--blue)':'#f87171'
       return `<div class="pick-item" onclick="openForm(reservations.find(x=>x.id==='${r.id}'))">
