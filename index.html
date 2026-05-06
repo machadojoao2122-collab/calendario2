@@ -32,7 +32,8 @@ header{border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;ba
 .logo-icon{width:38px;height:38px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:18px}
 .logo-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400}
 .logo-sub{font-size:11px;color:var(--text-muted);margin-top:-2px}
-.nav-tabs{display:flex;gap:4px}
+.nav-tabs{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
 .nav-tab{padding:7px 14px;border-radius:8px;border:1px solid transparent;font-size:13px;cursor:pointer;color:var(--text-secondary);background:none;font-family:'DM Sans',sans-serif;transition:all .18s}
 .nav-tab:hover{color:var(--text);background:var(--elevated)}
 .nav-tab.active{background:var(--elevated);border-color:var(--border);color:var(--text)}
@@ -341,14 +342,108 @@ main{max-width:980px;margin:0 auto;padding:24px 20px 80px}
 .empty-files{text-align:center;padding:56px 20px;color:var(--text-muted);font-size:14px}
 .empty-files-icon{font-size:40px;margin-bottom:12px;opacity:.4}
 
+/* ═══ MOBILE ═══ */
 @media(max-width:540px){
-  .stats-grid{grid-template-columns:1fr 1fr}.fin-hero{grid-template-columns:1fr}.fin-row{grid-template-columns:1fr 1fr}
-  .fin-table-head,.fin-table-row{grid-template-columns:1.2fr 1fr 1fr;font-size:12px}
+  /* Header */
+  .header-inner{padding:10px 12px;gap:8px;flex-wrap:wrap}
+  .logo-title{font-size:17px}
+  .logo-sub{display:none}
+  .nav-tabs{order:3;width:100%;justify-content:center;gap:2px}
+  .nav-tab{padding:6px 8px;font-size:11px;flex:1;text-align:center}
+  .refresh-btn{padding:7px 10px;font-size:12px}
+  .refresh-btn span{display:none}
+
+  /* Main padding */
+  main{padding:14px 10px 60px}
+
+  /* Stats */
+  .stats-grid{grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+  .stat-card{padding:10px 12px}
+  .stat-label{font-size:10px}
+  .stat-value{font-size:22px}
+
+  /* Calendar card */
+  .cal-card{border-radius:16px}
+
+  /* Calendar header */
+  .cal-header{padding:14px 14px 12px;gap:8px}
+  .cal-month-title{font-size:26px}
+  .cal-year{font-size:11px}
+  .cal-nav{width:32px;height:32px;font-size:18px;border-radius:8px}
+  .cal-today-btn{font-size:10px;padding:3px 9px}
+
+  /* Weekday labels */
+  .cal-weekdays{padding:5px 8px 3px;gap:2px}
+  .cal-weekday{font-size:9px;letter-spacing:.04em;padding:3px 0}
+
+  /* Day grid */
+  .cal-grid{gap:2px;padding:4px 6px 10px}
+
+  /* Day cells */
+  .cal-day{
+    min-height:44px;
+    border-radius:8px;
+    padding:4px 3px 3px;
+  }
+  .day-num{font-size:12px;margin-bottom:2px}
+
+  /* Hide text pills on mobile — show colored dots instead */
+  .day-event{display:none}
+
+  /* Show dots instead of pills */
+  .cal-day.has-confirmed::before,
+  .cal-day.has-pending::before,
+  .cal-day.has-spill::before{
+    bottom:4px;top:auto;left:50%;transform:translateX(-50%);
+    width:5px;height:5px;border-radius:50%;right:auto;
+    background:var(--dot-color,var(--gold));
+  }
+  .cal-day.has-confirmed::before{--dot-color:#e6c97a}
+  .cal-day.has-pending::before{--dot-color:#93c5fd}
+  .cal-day.has-spill::before{--dot-color:rgba(201,168,76,0.4)}
+
+  /* Multiple events = second dot */
+  .cal-day.has-multi::after{
+    content:'';position:absolute;
+    bottom:4px;left:calc(50% + 7px);
+    width:4px;height:4px;border-radius:50%;
+    background:rgba(255,255,255,0.3);
+  }
+
+  /* Legend */
+  .cal-legend{padding:10px 14px;gap:10px}
+  .legend-item{font-size:11px}
+  .legend-dot{width:7px;height:7px}
+
+  /* Upcoming grid */
+  .res-grid{grid-template-columns:1fr}
+
+  /* Finance page */
+  .fin-hero{grid-template-columns:1fr}
+  .fin-hero-val{font-size:30px}
+  .fin-row{grid-template-columns:1fr 1fr}
+  .fin-table-head,.fin-table-row{grid-template-columns:1.2fr 1fr 1fr;font-size:11px}
   .fin-table-head .fin-cell:nth-child(4),.fin-table-head .fin-cell:nth-child(5),
   .fin-table-row .fin-cell:nth-child(4),.fin-table-row .fin-cell:nth-child(5){display:none}
-  .nav-tab{padding:6px 9px;font-size:12px}
+
+  /* Files page */
   .files-stats{grid-template-columns:1fr 1fr}
-  .fgroup-body{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .fgroup-body{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .files-toolbar{gap:5px}
+  .ftype-btn{padding:6px 10px;font-size:11px}
+
+  /* Modal full width */
+  .modal{max-height:96vh}
+  .modal-body{padding:14px 16px;gap:12px}
+  .modal-footer{padding:10px 16px}
+  .two-col,.payment-grid,.time-row{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:380px){
+  .nav-tab{font-size:10px;padding:5px 5px}
+  .cal-day{min-height:38px}
+  .day-num{font-size:11px}
+  .stats-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -683,7 +778,8 @@ function renderCalendar(){
     else{
       if(hasCon) div.classList.add('has-confirmed')
       else if(hasPen) div.classList.add('has-pending')
-      else if(hasSpill) div.classList.add('has-spill')  // only spill, no own
+      else if(hasSpill) div.classList.add('has-spill')
+      if(own.length + spill.length > 1) div.classList.add('has-multi')
       if(isTod) div.classList.add('today')
       else if(isPast&&!hasAny) div.classList.add('past')
     }
